@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GeoBlitz">
+<meta name="theme-color" content="#0a0e1a">
+<title>GeoBlitz — Geography Game</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+
+<!-- D3 + TopoJSON -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+</head>
+<body ontouchstart="">
+<button type="button" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ TAM EKRAN</button>
+
+<div id="topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button type="button" id="btn-main-menu" onclick="openMainMenu()" title="Ana Menü" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;flex-shrink:0;">☰</button>
+    <div id="logo">🌍 GEOBLITZ</div>
+  </div>
+  <div class="bar-section">
+    <div id="level-badge">SEVİYE 1</div>
+    <div id="q-dots"></div>
+  </div>
+  <div class="bar-section">
+    <div class="stat-box"><div class="label">Puan</div><div class="value" id="score-display">0</div></div>
+    <div class="stat-box"><div class="label">Hedef</div><div class="value" id="target-display">—</div></div>
+  </div>
+  <div id="user-info">
+    <div id="user-avatar">?</div>
+    <div id="user-name-display" style="font-size:.85rem;color:var(--text);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</div>
+  </div>
+</div>
+
+<div id="progress-wrap">
+  <div id="progress-label"><span id="progress-label-text">İlerleme</span><span id="progress-text">0 / 0</span></div>
+  <div id="progress-bar-bg"><div id="progress-bar-fill"></div></div>
+</div>
+
+<div id="question-banner">
+  <div id="question-text">Haritada işaretle!</div>
+  <div id="city-line">
+    <div id="city-name">—</div>
+    <div id="city-country"></div>
+  </div>
+</div>
+
+<div id="timer-wrap">
+  <div id="timer-bar-bg"><div id="timer-bar-fill"></div></div>
+  <div id="timer-label">15</div>
+</div>
+
+<div id="map-container">
+  <div id="loading-error" style="display:none;position:absolute;inset:0;z-index:999;background:rgba(10,14,26,0.95);color:#f55;align-items:center;justify-content:center;font-family:sans-serif;padding:20px;text-align:center;">
+    Harita yüklenemedi. Lütfen internet bağlantınızı kontrol edin ve sayfayı yenileyin.
+  </div>
+  <svg id="world-svg"></svg>
+  <svg id="turkey-svg" style="position:absolute;inset:0;width:100%;height:100%;display:none;cursor:crosshair;"></svg>
+  <svg id="europe-svg" style="position:absolute;inset:0;width:100%;height:100%;display:none;cursor:crosshair;"></svg>
+
+  <div id="combo-badge">KOMBO x1.0</div>
+
+  <div id="zoom-controls">
+    <button type="button" class="zoom-btn" id="btn-zoom-in">＋</button>
+    <button type="button" class="zoom-btn" id="btn-zoom-out">－</button>
+    <button type="button" class="zoom-btn" id="btn-zoom-reset">↺</button>
+  </div>
+
+  <!-- LANDMARK FOTO OVERLAY -->
+  <div id="landmark-photo-overlay" style="position:absolute;inset:0;z-index:200;background:rgba(0,0,0,.92);flex-direction:column;align-items:center;justify-content:center;cursor:pointer;">
+    <div id="lpo-name" style="display:none;"></div>
+    <img id="lpo-img" src="" alt="" style="max-width:90%;max-height:62vh;object-fit:contain;border-radius:10px;box-shadow:0 4px 32px rgba(0,0,0,.7);" />
+    <div style="width:90%;max-width:500px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:14px;overflow:hidden;">
+      <div id="lpo-bar" style="width:0%;height:100%;background:var(--accent);border-radius:2px;transition:none;"></div>
+    </div>
+    <div style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:8px;" id="lpo-hint"></div>
+  </div>
+
+  <div id="result-toast" style="display:none">
+    <div>
+      <div class="result-score" id="toast-score">+0</div>
+      <div class="result-dist" id="toast-dist"></div>
+    </div>
+    <button type="button" class="result-btn" id="btn-next-q" onclick="nextQuestion()" style="touch-action:manipulation;-webkit-tap-highlight-color:transparent;">DEVAM →</button>
+  </div>
+</div>
+
+<div id="overlay" class="hidden">
+  <div id="overlay-box">
+    <h2 id="overlay-title">GEOBLITZ</h2>
+    <p id="overlay-desc">Haritada şehirlerin yerini bul,<br>puan topla, seviyeleri geç!</p>
+    <div id="overlay-buttons">
+      <button type="button" class="overlay-btn" onclick="startGame()">BAŞLA</button>
+    </div>
+  </div>
+</div>
+
+<!-- FULLSCREEN PROMPT -->
+<div id="fs-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,26,.97);align-items:center;justify-content:center;z-index:600;">
+  <div style="background:#111827;border:1px solid #1e2d45;border-radius:20px;padding:36px 32px;text-align:center;max-width:340px;width:90%;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">📱</div>
+    <h2 id="fs-title" style="font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:3px;color:#f0a500;margin-bottom:10px;">MOBİL ALGILANDI</h2>
+    <p id="fs-desc" style="color:#5a6a80;font-size:.88rem;line-height:1.6;margin-bottom:24px;">Daha iyi bir deneyim için tam ekrana geçmek ister misiniz?</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button type="button" id="fs-yes" onclick="acceptFullscreen()" style="padding:13px;background:linear-gradient(135deg,#e05c2a,#f0a500);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:2px;cursor:pointer;">TAM EKRANA GEÇ</button>
+      <button type="button" id="fs-no" onclick="declineFullscreen()" style="padding:11px;background:transparent;color:#5a6a80;border:1px solid #1e2d45;border-radius:10px;font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;">HAYIR, DEVAM ET</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal">
+  <div id="auth-box">
+    <h2>🌍 GEOBLITZ</h2>
+    <div class="auth-subtitle" id="auth-subtitle">Giriş yap veya kayıt ol</div>
+    <div id="auth-lang-selector" style="display:flex;gap:8px;justify-content:center;margin-bottom:18px;">
+      <button type="button" id="auth-lang-tr" style="background:rgba(240,165,0,.12);border:2px solid var(--accent);border-radius:8px;padding:6px 14px;color:var(--accent);font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;">🇹🇷 TÜRKÇE</button>
+      <button type="button" id="auth-lang-en" style="background:transparent;border:2px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--muted);font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;">ENGLISH 🇬🇧</button>
+    </div>
+
+    <!-- Giriş / Kayıt ekranı -->
+    <div id="auth-screen-main">
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="auth-tab-login">GİRİŞ YAP</button>
+        <button type="button" class="auth-tab" id="auth-tab-register">KAYIT OL</button>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <!-- Login: e-posta veya kullanıcı adı -->
+      <input class="auth-input" id="auth-identifier" type="text" placeholder="E-posta veya kullanıcı adı" autocomplete="username" style="display:block;"/>
+      <!-- Kayıt: e-posta zorunlu (ayrıca göster) -->
+      <input class="auth-input" id="auth-email" type="email" placeholder="E-posta" autocomplete="email" style="display:none;"/>
+      <input class="auth-input" id="auth-password" type="password" placeholder="Şifre" maxlength="40" autocomplete="current-password"/>
+      <button type="button" class="auth-submit" id="auth-submit-btn">DEVAM</button>
+      <div style="text-align:center;margin-top:8px;">
+        <a id="auth-forgot-link" style="color:var(--muted);font-size:.8rem;cursor:pointer;text-decoration:underline;">Şifremi unuttum</a>
+      </div>
+      <div class="auth-guest" id="auth-guest-line">ya da <a style="touch-action:manipulation;-webkit-tap-highlight-color:transparent;">misafir olarak oyna</a></div>
+    </div>
+
+    <!-- Kullanıcı adı ekranı (kayıt sonrası) -->
+    <div id="auth-screen-username" style="display:none;">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:16px;text-align:center;" id="auth-username-subtitle">Liderlik tablosunda görünecek kullanıcı adını seç</div>
+      <div class="auth-error" id="auth-username-error"></div>
+      <input class="auth-input" id="auth-username-input" type="text" placeholder="Kullanıcı adı (2-20 karakter)" maxlength="20" autocomplete="off"/>
+      <button type="button" class="auth-submit" id="auth-username-btn" onclick="authSetUsername()">DEVAM</button>
+    </div>
+
+    <!-- Şifre sıfırlama ekranı -->
+    <div id="auth-screen-forgot" style="display:none;">
+      <div style="font-size:.9rem;color:var(--muted);margin-bottom:16px;text-align:center;" id="auth-forgot-subtitle">E-posta adresine şifre sıfırlama linki gönderilecek</div>
+      <div class="auth-error" id="auth-forgot-error"></div>
+      <input class="auth-input" id="auth-forgot-email" type="email" placeholder="E-posta"/>
+      <button type="button" class="auth-submit" id="auth-forgot-btn" onclick="authSendReset()">GÖNDER</button>
+      <div style="text-align:center;margin-top:8px;">
+        <a id="auth-back-link" style="color:var(--muted);font-size:.8rem;cursor:pointer;text-decoration:underline;">← Geri</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WELCOME / START MODAL -->
+<div id="welcome-modal">
+  <div id="welcome-box">
+    <h2>🌍 GEOBLITZ</h2>
+    <div class="welcome-user" id="welcome-user-text">Hoş geldin, <span id="welcome-username"></span>!</div>
+    <div id="lang-selector">
+      <button type="button" class="lang-btn active" onclick="setLang('tr')" id="lang-tr">🇹🇷 TÜRKÇE</button>
+      <button type="button" class="lang-btn" onclick="setLang('en')" id="lang-en">ENGLISH 🇬🇧</button>
+    </div>
+    <div id="welcome-buttons" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="overlay-btn" onclick="welcomeStart('world')" id="btn-play-world" style="flex:1;font-size:1.1rem;padding:15px 10px;">🌍 DÜNYA</button>
+        <button type="button" class="overlay-btn" onclick="welcomeStart('europe')" id="btn-play-europe" style="flex:1;font-size:1.1rem;padding:15px 10px;background:linear-gradient(135deg,#2563eb,#60a5fa);">🇪🇺 AVRUPA</button>
+        <button type="button" class="overlay-btn" onclick="welcomeStart('turkey')" id="btn-play-turkey" style="flex:1;font-size:1.1rem;padding:15px 10px;background:linear-gradient(135deg,#c0392b,#e74c3c);">🇹🇷 TÜRKİYE</button>
+      </div>
+      <button type="button" class="overlay-btn" onclick="welcomeStart('landmark')" id="btn-play-landmark" style="width:100%;font-size:1.1rem;padding:15px 10px;background:linear-gradient(135deg,#6a1b9a,#ab47bc);">🏛️ <span id="btn-landmark-label">DÜNYA HARİKALARI</span></button>
+      <button type="button" class="overlay-btn" onclick="startFlagSolo()" id="btn-play-flag" style="width:100%;font-size:1.1rem;padding:15px 10px;background:linear-gradient(135deg,#b71c1c,#e53935);">🚩 <span id="btn-flag-label">BAYRAK YARIŞI</span></button>
+      <button type="button" class="overlay-btn" onclick="openMultiplayerMenu()" id="btn-multiplayer" style="background:linear-gradient(135deg,#1a6b9a,#2196F3);font-size:1.1rem;padding:15px 10px;" id="btn-mp-label">⚔️ MULTIPLAYER</button>
+      <button type="button" class="overlay-btn secondary" onclick="showLeaderboard('welcome')" id="btn-welcome-lb">🏆 LİDERLİK TABLOSU</button>
+      <button type="button" class="overlay-btn secondary" onclick="openOptions('welcome')" id="btn-options-welcome">⚙️ SEÇENEKLER</button>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="overlay-btn secondary" onclick="setLang('tr')" id="btn-lang-tr" style="flex:1;font-size:.9rem;padding:10px 6px;">🇹🇷 Türkçe</button>
+        <button type="button" class="overlay-btn secondary" onclick="setLang('en')" id="btn-lang-en" style="flex:1;font-size:.9rem;padding:10px 6px;">🇬🇧 English</button>
+      </div>
+      <button type="button" class="overlay-btn danger" onclick="authLogout()" id="btn-welcome-logout">🚪 ÇIKIŞ YAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANA MENÜ MODAL (oyun sırasında) -->
+<div id="main-menu-modal" style="display:none;position:fixed;inset:0;background:rgba(10,14,26,.97);align-items:center;justify-content:center;z-index:450;">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:28px 32px;text-align:center;max-width:360px;width:92%;">
+    <h2 style="font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--accent);letter-spacing:3px;margin-bottom:6px;">🌍 GEOBLITZ</h2>
+    <div style="color:var(--muted);font-size:.8rem;margin-bottom:20px;" id="main-menu-mode-label"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button type="button" class="overlay-btn secondary" onclick="closeMainMenu()" id="mm-btn-resume" style="width:100%;font-size:1rem;padding:11px 8px;border-color:var(--accent);color:var(--accent);">▶ OYUNA DEVAM ET</button>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="overlay-btn" onclick="mainMenuStart('world')" id="mm-btn-world" style="flex:1;font-size:1rem;padding:13px 8px;">🌍 DÜNYA</button>
+        <button type="button" class="overlay-btn" onclick="mainMenuStart('europe')" id="mm-btn-europe" style="flex:1;font-size:1rem;padding:13px 8px;background:linear-gradient(135deg,#2563eb,#60a5fa);">🇪🇺 AVRUPA</button>
+        <button type="button" class="overlay-btn" onclick="mainMenuStart('turkey')" id="mm-btn-turkey" style="flex:1;font-size:1rem;padding:13px 8px;background:linear-gradient(135deg,#c0392b,#e74c3c);">🇹🇷 TÜRKİYE</button>
+      </div>
+      <button type="button" class="overlay-btn" onclick="mainMenuStart('landmark')" id="mm-btn-landmark" style="width:100%;font-size:1rem;padding:13px 8px;background:linear-gradient(135deg,#6a1b9a,#ab47bc);">🏛️ <span id="mm-landmark-label">DÜNYA HARİKALARI</span></button>
+      <button type="button" class="overlay-btn" onclick="closeMainMenu();startFlagSolo()" id="mm-btn-flag" style="width:100%;font-size:1rem;padding:13px 8px;background:linear-gradient(135deg,#b71c1c,#e53935);">🚩 <span id="mm-flag-label">BAYRAK YARIŞI</span></button>
+      <button type="button" class="overlay-btn secondary" onclick="closeMainMenu();showLeaderboard('game')">🏆 LİDERLİK TABLOSU</button>
+      <button type="button" class="overlay-btn secondary" onclick="closeMainMenu();openOptions(null)">⚙️ SEÇENEKLER</button>
+      <button type="button" class="overlay-btn" onclick="closeMainMenu();openMultiplayerMenu();" id="mm-btn-multiplayer" style="background:linear-gradient(135deg,#1a6b9a,#2196F3);">⚔️ MULTIPLAYER</button>
+      <button type="button" class="overlay-btn danger" onclick="authLogout()">🚪 ÇIKIŞ YAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTIONS / KEY BINDING MODAL -->
+<div id="options-modal" style="position:fixed;inset:0;background:rgba(10,14,26,.97);display:none;align-items:center;justify-content:center;z-index:450;overflow-y:auto;">
+  <div id="options-box" style="background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:36px 40px;max-width:420px;width:92%;margin:auto;">
+    <h2 id="opt-title" style="font-family:'Bebas Neue',cursive;font-size:2rem;letter-spacing:4px;color:var(--accent);text-align:center;margin-bottom:6px;">SEÇENEKLER</h2>
+    <p id="opt-subtitle" style="text-align:center;color:var(--muted);font-size:.8rem;margin-bottom:24px;">Klavye kısayollarını özelleştir</p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+        <div><div id="opt-mark-label" style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--text);">HARİTA İŞARETLEME</div><div id="opt-mark-desc" style="font-size:.72rem;color:var(--muted);margin-top:2px;">Fareyle tıkla veya bu tuşa bas</div></div>
+        <button type="button" id="keybind-mark" class="keybind-btn" data-action="mark" onclick="startRebind(this)">SPACE</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+        <div><div id="opt-zoomin-label" style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--text);">ZOOM ARTIR</div><div id="opt-zoomin-desc" style="font-size:.72rem;color:var(--muted);margin-top:2px;">Haritayı yakınlaştır</div></div>
+        <button type="button" id="keybind-zoomin" class="keybind-btn" data-action="zoomin" onclick="startRebind(this)">Equal</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+        <div><div id="opt-zoomout-label" style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--text);">ZOOM AZALT</div><div id="opt-zoomout-desc" style="font-size:.72rem;color:var(--muted);margin-top:2px;">Haritayı uzaklaştır</div></div>
+        <button type="button" id="keybind-zoomout" class="keybind-btn" data-action="zoomout" onclick="startRebind(this)">Minus</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+        <div><div id="opt-zoomreset-label" style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--text);">ZOOM SIFIRLA</div><div id="opt-zoomreset-desc" style="font-size:.72rem;color:var(--muted);margin-top:2px;">Haritayı varsayılana döndür</div></div>
+        <button type="button" id="keybind-zoomreset" class="keybind-btn" data-action="zoomreset" onclick="startRebind(this)">KeyR</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+        <div><div id="opt-next-label" style="font-family:'Bebas Neue',cursive;font-size:.95rem;letter-spacing:1px;color:var(--text);">SONRAKİ SORU</div><div id="opt-next-desc" style="font-size:.72rem;color:var(--muted);margin-top:2px;">Cevaptan sonra devam et</div></div>
+        <button type="button" id="keybind-next" class="keybind-btn" data-action="next" onclick="startRebind(this)">Enter</button>
+      </div>
+    </div>
+    <div id="rebind-hint" style="text-align:center;color:var(--accent);font-size:.82rem;min-height:20px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" onclick="resetKeybinds()" style="flex:1;padding:11px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;" id="opt-reset-btn">VARSAYILANA DONDUR</button>
+      <button type="button" onclick="closeOptions()" style="flex:1;padding:11px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:10px;color:#000;font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;" id="opt-close-btn" onclick="closeOptions()">KAYDET</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD MODAL -->
+<div id="lb-modal" class="hidden">
+  <div id="lb-box">
+    <h2>🏆 LİDERLİK TABLOSU</h2>
+    <div id="lb-tabs" style="display:flex;gap:8px;margin:10px 0;">
+      <button type="button" id="lb-tab-world" class="lb-tab active" onclick="showLeaderboard(null,'world')">🌍 DÜNYA</button>
+      <button type="button" id="lb-tab-europe" class="lb-tab" onclick="showLeaderboard(null,'europe')">🇪🇺 AVRUPA</button>
+      <button type="button" id="lb-tab-turkey" class="lb-tab" onclick="showLeaderboard(null,'turkey')">🇹🇷 TÜRKİYE</button>
+      <button type="button" id="lb-tab-landmark" class="lb-tab" onclick="showLeaderboard(null,'landmark')">🏛️ HARİKALAR</button>
+      <button type="button" id="lb-tab-flag" class="lb-tab" onclick="showLeaderboard(null,'flag')">🚩 BAYRAK</button>
+    </div>
+    <div id="lb-subtitle">Tek oyundan alınan en yüksek puanlar</div>
+    <div id="lb-orientation-note" style="display:none;text-align:center;color:var(--accent);font-size:.78rem;margin-bottom:10px;padding:6px 10px;background:rgba(240,165,0,.08);border-radius:8px;border:1px solid rgba(240,165,0,.2);">📱 Liderlik tablosunu dikey ekranda görüntülemeniz tavsiye edilir.</div>
+    <div id="lb-list"><div class="lb-loading">Yükleniyor...</div></div>
+    <div id="lb-pagination" style="display:none;justify-content:center;gap:10px;margin-top:10px;"></div>
+    <button type="button" class="lb-close" onclick="closeLeaderboard()">KAPAT</button>
+    <button type="button" id="btn-reset-score" class="lb-close" style="margin-top:6px;color:var(--red);border-color:var(--red);font-size:.75rem;" onclick="resetMyScore()">SKORUMU SIFIRLA</button>
+  </div>
+</div>
+
+<!-- MULTIPLAYER MENU MODAL -->
+<div id="mp-modal">
+  <!-- Screen: Main menu -->
+  <div id="mp-box">
+    <div id="mp-screen-main">
+      <h2 id="mp-main-h2">⚔️ MULTIPLAYER</h2>
+      <div class="mp-sub" id="mp-main-sub">Play real-time with 2-5 players</div>
+      <div class="mp-error" id="mp-main-error"></div>
+      <button type="button" class="mp-btn" onclick="mpShowMatchmaking()" id="mp-btn-matchmaking" style="background:linear-gradient(135deg,#1a7a4a,#2ecc71);">⚡ RASTGELE EŞLEŞTİR</button>
+      <button type="button" class="mp-btn" onclick="mpShowCreate()" id="mp-btn-create">➕ LOBİ OLUŞTUR</button>
+      <button type="button" class="mp-btn" onclick="mpShowBrowse()" id="mp-btn-browse">🌐 AKTİF LOBİLER</button>
+      <button type="button" class="mp-btn secondary" onclick="mpShowJoin()" id="mp-btn-join" style="font-size:.95rem;">🔗 KOD İLE KATIL</button>
+      <button type="button" class="mp-btn secondary" onclick="closeMultiplayerMenu()" id="mp-btn-back-main" id="mp-btn-back-main">← BACK</button>
+    </div>
+
+    <!-- Screen: Create lobby -->
+    <div id="mp-screen-create" style="display:none">
+      <h2 id="mp-create-h2">➕ LOBİ OLUŞTUR</h2>
+      <div class="mp-sub" id="mp-create-sub">Lobi adı gir ve ayarları seç</div>
+      <div class="mp-error" id="mp-create-error"></div>
+      <input class="mp-input" id="mp-create-name" placeholder="LOBİ ADI" maxlength="20" style="text-transform:uppercase;letter-spacing:2px;font-size:1.1rem;text-align:center;font-family:'Bebas Neue',cursive;" oninput="this.value=this.value.toUpperCase()"/>
+      <div class="mp-toggle-row">
+        <span class="mp-toggle-label" id="mp-create-private-label">🔒 Şifreli lobi</span>
+        <label class="mp-toggle">
+          <input type="checkbox" id="mp-create-private-toggle" onchange="mpTogglePasswordField()"/>
+          <span class="mp-toggle-slider"></span>
+        </label>
+      </div>
+      <div id="mp-create-password-row" style="display:none">
+        <input class="mp-input" id="mp-create-password" placeholder="Şifre belirle" maxlength="20" type="text"/>
+      </div>
+      <button type="button" class="mp-btn" onclick="mpCreateLobby()" id="mp-create-go">🚀 LOBİ OLUŞTUR</button>
+      <button type="button" class="mp-btn secondary" onclick="mpShowMain()" id="mp-back-create">← GERİ</button>
+    </div>
+
+    <!-- Screen: Join lobby (code) -->
+    <div id="mp-screen-join" style="display:none">
+      <h2 id="mp-join-h2">🔗 KOD İLE KATIL</h2>
+      <div class="mp-sub" id="mp-join-sub">Arkadaşından aldığın 4 harfli kodu gir</div>
+      <div class="mp-error" id="mp-join-error"></div>
+      <input class="mp-input" id="mp-join-code" placeholder="LOBİ KODU (4 harf)" maxlength="4" style="text-transform:uppercase;letter-spacing:4px;font-size:1.4rem;text-align:center;font-family:'Bebas Neue',cursive;"/>
+      <div id="mp-join-password-row" style="display:none">
+        <input class="mp-input" id="mp-join-password" placeholder="Lobi şifresi" maxlength="20" type="text"/>
+      </div>
+      <button type="button" class="mp-btn" onclick="mpJoinLobbyByCode()" id="mp-join-go">GİRİŞ YAP</button>
+      <button type="button" class="mp-btn secondary" onclick="mpShowMain()" id="mp-back-join">← GERİ</button>
+    </div>
+
+    <!-- Screen: Matchmaking -->
+    <div id="mp-screen-matchmaking" style="display:none">
+      <!-- Aşama 1: Mod seç -->
+      <div id="mp-mm-select">
+        <h2>⚡ HIZLI EŞLEŞTİR</h2>
+        <div class="mp-sub" id="mp-mm-select-sub">Mod seç ve rankını gör</div>
+        <div class="mm-rank-grid" id="mm-rank-grid">
+          <!-- JS ile doldurulacak -->
+        </div>
+        <button type="button" class="mp-btn" onclick="mmStartSearch()" id="mm-start-search-btn">🔍 EŞLEŞTİR</button>
+        <button type="button" class="mp-btn secondary" onclick="mpShowMain()">← GERİ</button>
+      </div>
+      <!-- Aşama 2: Arama -->
+      <div id="mp-mm-searching" style="display:none">
+        <h2 id="mp-mm-h2">⚡ EŞLEŞTİRİLİYOR</h2>
+        <div class="mp-sub" id="mp-mm-sub"></div>
+        <div class="mp-error" id="mp-mm-error"></div>
+        <div style="text-align:center;padding:16px 0;">
+          <div id="mp-mm-spinner" style="font-size:2.5rem;margin-bottom:8px;">🔍</div>
+          <div id="mp-mm-timer" style="font-family:'Bebas Neue',cursive;font-size:2.8rem;color:var(--accent);">20</div>
+          <div style="color:var(--muted);font-size:.82rem;margin-top:4px;" id="mp-mm-hint">Rakip aranıyor…</div>
+        </div>
+        <!-- Aralık genişletme sorusu -->
+        <div id="mp-mm-expand-box" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;text-align:center;">
+          <div style="font-size:.88rem;color:var(--text);margin-bottom:10px;" id="mp-mm-expand-label">Rank aralığı genişletilsin mi?</div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="mp-btn" id="mp-mm-expand-yes" onclick="mmExpandRange()" style="flex:1;margin-bottom:0;padding:10px;">✓ EVET</button>
+            <button type="button" class="mp-btn danger" id="mp-mm-expand-no" onclick="mmDismissExpand()" style="flex:1;margin-bottom:0;padding:10px;">✕ HAYIR</button>
+          </div>
+        </div>
+        <button type="button" class="mp-btn secondary" onclick="mmCancel()" id="mp-mm-cancel">✕ İPTAL</button>
+      </div>
+    </div>
+
+    <!-- Screen: Browse lobbies -->
+    <div id="mp-screen-browse" style="display:none">
+      <h2 id="mp-browse-h2">🌐 AKTİF LOBİLER</h2>
+      <div class="mp-sub" id="mp-browse-sub">Açık lobiye tıkla, 🔒 şifreli lobiye şifre gir</div>
+      <div class="mp-error" id="mp-browse-error"></div>
+      <div id="mp-lobby-list"><div class="mp-lobby-empty" id="mp-browse-empty">Aranıyor…</div></div>
+      <!-- Şifreli lobi için gizli modal -->
+      <div id="mp-browse-pw-box" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:8px;" id="mp-browse-pw-label">Bu lobi şifreli</div>
+        <input class="mp-input" id="mp-browse-pw-input" placeholder="Şifreyi gir" maxlength="20" type="text"/>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="mp-btn" onclick="mpBrowseJoinWithPw()" style="flex:1;margin-bottom:0">✓ GİR</button>
+          <button type="button" class="mp-btn secondary" onclick="mpBrowseCancelPw()" style="flex:0 0 auto;width:52px;margin-bottom:0">✕</button>
+        </div>
+      </div>
+      <button type="button" class="mp-btn secondary" onclick="mpRefreshBrowse()" id="mp-browse-refresh">🔄 YENİLE</button>
+      <button type="button" class="mp-btn secondary" onclick="mpShowMain()" id="mp-back-browse">← GERİ</button>
+    </div>
+
+    <!-- Screen: Lobby waiting room (host) -->
+    <div id="mp-screen-lobby-host" style="display:none">
+      <h2 id="mp-lobby-h2">🏠 LOBİ</h2>
+      <div class="mp-sub" id="mp-lobby-sub">Share this code with your friends</div>
+      <div class="mp-code-display" id="mp-lobby-code-display" onclick="mpCopyCode()" title="Click to copy">----</div>
+      <div class="mp-status" id="mp-host-status">Waiting for players…</div>
+      <div class="mp-player-list" id="mp-host-player-list"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button type="button" class="mp-mode-btn active" id="lobby-mode-world" onclick="mpLobbySetMode('world')" ontouchend="event.preventDefault();mpLobbySetMode('world');">🌍</button>
+        <button type="button" class="mp-mode-btn" id="lobby-mode-europe" onclick="mpLobbySetMode('europe')" ontouchend="event.preventDefault();mpLobbySetMode('europe');">🇪🇺</button>
+        <button type="button" class="mp-mode-btn" id="lobby-mode-turkey" onclick="mpLobbySetMode('turkey')" ontouchend="event.preventDefault();mpLobbySetMode('turkey');">🇹🇷</button>
+        <button type="button" class="mp-mode-btn" id="lobby-mode-landmark" onclick="mpLobbySetMode('landmark')" ontouchend="event.preventDefault();mpLobbySetMode('landmark');">🏛️</button>
+        <button type="button" class="mp-mode-btn" id="lobby-mode-flag" onclick="mpLobbySetMode('flag')" ontouchend="event.preventDefault();mpLobbySetMode('flag');">🚩</button>
+        <span id="lobby-mode-label" style="color:var(--muted);font-size:.8rem;align-self:center;margin-left:4px;">DÜNYA</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="mp-btn" id="mp-start-btn" onclick="mpStartGame()" style="flex:1">▶ BAŞLAT</button>
+        <button type="button" class="mp-btn danger" onclick="mpLeaveLobby()" style="flex:0 0 auto;width:52px;font-size:1.4rem;padding:13px 0;">✕</button>
+      </div>
+    </div>
+
+    <!-- Screen: Lobby waiting room (guest) -->
+    <div id="mp-screen-lobby-guest" style="display:none">
+      <h2 id="mp-guest-h2">⏳ HOST BEKLENİYOR</h2>
+      <div class="mp-sub" id="mp-guest-sub">Hostu başlatmasını bekle</div>
+      <div class="mp-status" id="mp-guest-status">Lobiye bağlandı…</div>
+      <div class="mp-player-list" id="mp-guest-player-list"></div>
+      <div id="mp-guest-mode-display" style="text-align:center;color:var(--muted);font-size:.85rem;margin:6px 0;"></div>
+      <button type="button" class="mp-btn danger" onclick="mpLeaveLobby()" id="mp-leave-btn">LOBİDEN AYRIL</button>
+    </div>
+  </div>
+</div>
+
+<!-- MULTIPLAYER LIVE SCORES (in-game) -->
+<div id="mp-live-scores"></div>
+
+<!-- MULTIPLAYER RESULT OVERLAY -->
+<!-- MULTIPLAYER BETWEEN-QUESTION LEADERBOARD -->
+
+<!-- BAYRAK MODU EKRANI -->
+<div id="flag-screen">
+  <div id="flag-portrait-hint" style="display:none;background:#1a3a2a;border-bottom:1px solid #2e7d52;padding:6px 16px;text-align:center;font-size:.78rem;color:#81c784;width:100%;box-sizing:border-box;flex-shrink:0;">
+    📱 Bu mod dikey ekranda daha iyi görünür · This mode works best in portrait
+  </div>
+  <div id="flag-top-bar">
+    <button type="button" onclick="openFlagMenu()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">☰</button>
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.1rem;letter-spacing:2px;color:var(--accent)">🚩 <span id="flag-round-info">SORU 1/15</span></div>
+    <div id="flag-live-scores" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"></div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:1.1rem;color:var(--muted)" id="flag-time-left">10</div>
+  </div>
+  <div id="flag-emoji" style="display:flex;align-items:center;justify-content:center;padding:16px 0 10px;flex-shrink:0;"><img id="flag-img" src="" alt="flag" style="max-width:min(320px,85vw);width:100%;height:auto;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.5);display:block;" /></div>
+  <div id="flag-question-area">
+    <div id="flag-timer-bar-wrap"><div id="flag-timer-bar" style="width:100%"></div></div>
+    <div id="flag-score-info"></div>
+    <div id="flag-players-scores"></div>
+    <div id="flag-input-row">
+      <input id="flag-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" id="flag-input-placeholder" placeholder="Ülke adını yaz..." />
+      <button type="button" id="flag-submit-btn" onclick="flagSubmit()">✓</button>
+    </div>
+    <div id="flag-feedback"></div>
+    <div id="flag-hint-text"></div>
+  </div>
+</div>
+
+<!-- BAYRAK ARASI SKOR -->
+<div id="flag-between-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,14,26,.97);align-items:center;justify-content:center;z-index:550;flex-direction:column;gap:16px;">
+  <div style="font-family:'Bebas Neue',cursive;font-size:2rem;letter-spacing:3px;color:var(--accent)" id="flag-between-title">SKOR</div>
+  <div id="flag-between-answer" style="font-size:3rem;text-align:center;line-height:1.2;"></div>
+  <div id="flag-between-list" style="display:flex;flex-direction:column;gap:10px;width:90%;max-width:400px;"></div>
+  <div id="flag-between-next" style="color:var(--muted);font-size:.85rem;" ></div>
+</div>
+
+<div id="mp-between-overlay">
+  <div id="mp-between-box">
+    <div class="mp-bq-header">
+      <div class="mp-bq-title" id="mp-bq-title">QUESTION 1 RESULTS</div>
+      <div class="mp-bq-sub" id="mp-bq-sub">After 1 of 12 questions</div>
+    </div>
+    <div id="mp-bq-list" style="margin-top:14px;"></div>
+    <div class="mp-waiting-msg" id="mp-bq-waiting">Waiting for host to continue…</div>
+    <button type="button" class="mp-btn mp-host-next-btn" id="mp-bq-next-btn" onclick="mpHostAdvance()" style="display:none;">
+      ▶ NEXT QUESTION
+    </button>
+  </div>
+</div>
+
+<div id="mp-result-overlay">
+  <div id="mp-result-box">
+    <h2 id="mp-result-title">🏆 GAME OVER</h2>
+    <div id="mp-result-list"></div>
+    <div id="mp-rank-change"></div>
+    <div id="mp-result-btns" style="display:flex;gap:8px;margin-top:16px;"></div>
+    <button type="button" class="mp-btn" onclick="mpBackToMenu()" style="margin-top:16px" id="mp-back-menu-btn">BACK TO MENU</button>
+  </div>
+</div>
+
+<!-- RANK ATLAMA / YERLEŞİM MODALI -->
+<div id="rank-up-modal">
+  <div id="rank-up-box">
+    <div class="rup-title" id="rup-title">RANK UP!</div>
+    <div class="rup-sub" id="rup-sub"></div>
+    <div class="rup-cards" id="rup-cards"></div>
+    <button type="button" id="rank-up-close" onclick="closeRankUpModal()">TAMAM</button>
+  </div>
+</div>
+
+
+<!-- Veri setleri -->
+<script src="js/data/cities.js"></script>
+<script src="js/data/landmarks.js"></script>
+<script src="js/data/flags.js"></script>
+<script src="js/data/turkey.js"></script>
+
+<!-- Çekirdek modüller -->
+<script src="js/config.js"></script>
+<script src="js/lang.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/leaderboard.js"></script>
+
+<!-- Harita -->
+<script src="js/map.js"></script>
+
+<!-- Oyun -->
+<script src="js/game.js"></script>
+
+<!-- Multiplayer -->
+<script src="js/multiplayer.js"></script>
+
+<!-- Bayrak modu -->
+<script src="js/flag.js"></script>
+
+</body>
+</html>
