@@ -2967,12 +2967,18 @@
   <!-- AUTH MODAL -->
   <div id="auth-modal">
     <div id="auth-box">
-      <h2>🌍 GEOMEISTER</h2>
+      <div style="text-align:center;margin-bottom:8px;">
+        <img src="Logo.png" alt="GeoMeister" style="height:90px;width:auto;object-fit:contain;" onerror="this.style.display='none';document.getElementById('auth-logo-text').style.display='block';" />
+        <h2 id="auth-logo-text" style="display:none;">🌍 GEOMEISTER</h2>
+      </div>
       <div class="auth-subtitle" id="auth-subtitle">Giriş yap veya kayıt ol</div>
-      <div id="auth-lang-selector" style="display:flex;justify-content:center;margin-bottom:18px;">
-        <button type="button" id="auth-lang-toggle"
+      <div id="auth-lang-selector" style="display:flex;gap:8px;justify-content:center;margin-bottom:18px;">
+        <button type="button" id="auth-lang-tr"
           style="background:rgba(240,165,0,.12);border:2px solid var(--accent);border-radius:8px;padding:6px 14px;color:var(--accent);font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;"
-          onclick="setLang(lang==='tr'?'en':'tr')">🇬🇧 ENGLISH</button>
+          onclick="setLang('tr')">🇹🇷 TÜRKÇE</button>
+        <button type="button" id="auth-lang-en"
+          style="background:transparent;border:2px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--muted);font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;"
+          onclick="setLang('en')">🇬🇧 ENGLISH</button>
       </div>
 
       <!-- Giriş / Kayıt ekranı -->
@@ -2990,6 +2996,35 @@
           style="display:none;" />
         <input class="auth-input" id="auth-password" type="password" placeholder="Şifre" maxlength="40"
           autocomplete="current-password" />
+        <!-- Sözleşme onayı — sadece kayıt modunda gösterilir -->
+        <div id="auth-terms-row" style="display:none;margin-bottom:12px;">
+          <!-- Kutucuk 1: Gizlilik + Kullanım Şartları -->
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="auth-terms-check" disabled
+                style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;" />
+              <span style="font-size:.8rem;color:var(--muted);line-height:1.5;" id="auth-terms-label">
+                <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-privacy">Gizlilik Politikası</a>
+                ve
+                <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-terms">Kullanım Şartları</a>'nı
+                okudum ve kabul ediyorum.
+              </span>
+            </label>
+            <div id="auth-terms-hint" style="font-size:.72rem;color:var(--accent);margin-top:6px;margin-left:28px;display:none;" id="auth-terms-hint">⬆ Lütfen önce belgeleri okuyun</div>
+          </div>
+          <!-- Kutucuk 2: KVKK — sadece TR kullanıcılar için -->
+          <div id="auth-kvkk-row" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="auth-kvkk-check" disabled
+                style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;" />
+              <span style="font-size:.8rem;color:var(--muted);line-height:1.5;">
+                <a onclick="openDocModal('kvkk')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-kvkk">KVKK Aydınlatma Metni</a>'ni
+                okudum ve kabul ediyorum.
+              </span>
+            </label>
+            <div id="auth-kvkk-hint" style="font-size:.72rem;color:var(--accent);margin-top:6px;margin-left:28px;display:none;">⬆ Lütfen önce KVKK metnini okuyun</div>
+          </div>
+        </div>
         <button type="button" class="auth-submit" id="auth-submit-btn">DEVAM</button>
         <div style="text-align:center;margin-top:8px;">
           <a id="auth-forgot-link"
@@ -3027,7 +3062,10 @@
   <!-- WELCOME / START MODAL -->
   <div id="welcome-modal">
     <div id="welcome-box">
-      <h2>🌍 GEOMEISTER</h2>
+      <div style="text-align:center;margin-bottom:4px;">
+        <img src="Logo.png" alt="GeoMeister" style="height:100px;width:auto;object-fit:contain;" onerror="this.style.display='none';document.getElementById('welcome-logo-text').style.display='block';" />
+        <h2 id="welcome-logo-text" style="display:none;">🌍 GEOMEISTER</h2>
+      </div>
       <div class="welcome-user" id="welcome-user-text">Hoş geldin, <span id="welcome-username"></span>!</div>
       
       <!-- Banner Reklam Alanı -->
@@ -3061,8 +3099,8 @@
         <button type="button" class="overlay-btn secondary" onclick="openOptions('welcome')" id="btn-options-welcome">⚙️
           SEÇENEKLER</button>
         <div style="display:flex;gap:4px;margin-top:8px;justify-content:center;">
-          <button type="button" id="btn-privacy" class="overlay-btn" style="flex:1;font-size:.7rem;padding:6px 4px;background:transparent;color:var(--muted);border:1px solid var(--border);" onclick="showPrivacyPolicy()">Gizlilik</button>
-          <button type="button" id="btn-terms" class="overlay-btn" style="flex:1;font-size:.7rem;padding:6px 4px;background:transparent;color:var(--muted);border:1px solid var(--border);" onclick="showTermsOfService()">Şartlar</button>
+          <button type="button" id="btn-privacy" class="overlay-btn" style="flex:1;font-size:.7rem;padding:6px 4px;background:transparent;color:var(--muted);border:1px solid var(--border);" onclick="openDocModal('privacy')">Gizlilik</button>
+          <button type="button" id="btn-terms" class="overlay-btn" style="flex:1;font-size:.7rem;padding:6px 4px;background:transparent;color:var(--muted);border:1px solid var(--border);" onclick="openDocModal('terms')">Şartlar</button>
         </div>
         <button type="button" class="overlay-btn danger" onclick="authLogout()" id="btn-welcome-logout">🚪 ÇIKIŞ
           YAP</button>
@@ -3695,10 +3733,17 @@ window._geomeisterUser = currentUser;
         const _len = document.getElementById('lang-en');
         if (_ltr) _ltr.classList.toggle('active', l === 'tr');
         if (_len) _len.classList.toggle('active', l === 'en');
-        // Auth ekranı dil butonu
-        const aLangToggle = document.getElementById('auth-lang-toggle');
-        if (aLangToggle) {
-          aLangToggle.textContent = l === 'tr' ? '🇬🇧 ENGLISH' : '🇹🇷 TÜRKÇE';
+        // Auth ekranı dil butonları
+        const aLangTr = document.getElementById('auth-lang-tr');
+        const aLangEn = document.getElementById('auth-lang-en');
+        if (aLangTr && aLangEn) {
+          if (l === 'tr') {
+            aLangTr.style.background = 'rgba(240,165,0,.12)'; aLangTr.style.borderColor = 'var(--accent)'; aLangTr.style.color = 'var(--accent)';
+            aLangEn.style.background = 'transparent'; aLangEn.style.borderColor = 'var(--border)'; aLangEn.style.color = 'var(--muted)';
+          } else {
+            aLangEn.style.background = 'rgba(240,165,0,.12)'; aLangEn.style.borderColor = 'var(--accent)'; aLangEn.style.color = 'var(--accent)';
+            aLangTr.style.background = 'transparent'; aLangTr.style.borderColor = 'var(--border)'; aLangTr.style.color = 'var(--muted)';
+          }
         }
         applyLang();
       } catch (e) { console.error('[SETLANG ERROR]', e.message, e.stack); }
@@ -3831,6 +3876,13 @@ window._geomeisterUser = currentUser;
       if (el4('mp-mm-select-sub')) el4('mp-mm-select-sub').textContent = t('mpMatchmakingSelectSub');
       if (el4('mm-start-search-btn')) el4('mm-start-search-btn').textContent = t('mpStartSearch');
       if (el4('mp-mm-cancel')) el4('mp-mm-cancel').textContent = t('mpCancel');
+      // Matchmaking başlıkları
+      const mmSelectH2 = el4('mp-mm-select')?.querySelector('h2');
+      if (mmSelectH2) mmSelectH2.textContent = lang === 'en' ? '⚡ QUICK MATCH' : '⚡ HIZLI EŞLEŞTİR';
+      if (el4('mp-mm-h2')) el4('mp-mm-h2').textContent = lang === 'en' ? '⚡ MATCHING…' : '⚡ EŞLEŞTİRİLİYOR…';
+      // Join code placeholder
+      const joinCode = el4('mp-join-code');
+      if (joinCode) joinCode.placeholder = lang === 'en' ? 'LOBBY CODE (4 CHARS)' : 'LOBİ KODU (4 HANE)';
       if (el4('mp-browse-h2')) el4('mp-browse-h2').textContent = t('mpBrowseTitle');
       if (el4('mp-browse-refresh')) el4('mp-browse-refresh').textContent = t('mpRefresh');
       if (el4('mp-back-browse')) el4('mp-back-browse').textContent = t('mpBackBtn');
@@ -3871,6 +3923,21 @@ window._geomeisterUser = currentUser;
       if (el4('auth-username-input')) el4('auth-username-input').placeholder = lang === 'en' ? 'Username (2-20 chars)' : 'Kullanıcı adı (2-20 karakter)';
       if (el4('auth-forgot-subtitle')) el4('auth-forgot-subtitle').textContent = lang === 'en' ? 'A password reset link will be sent to your email' : 'E-posta adresine şifre sıfırlama linki gönderilecek';
       if (el4('auth-forgot-email')) el4('auth-forgot-email').placeholder = lang === 'en' ? 'Email' : 'E-posta';
+      // Sözleşme onay label'ı
+      const termsLabel = el4('auth-terms-label');
+      if (termsLabel) {
+        if (lang === 'en') {
+          termsLabel.innerHTML = `I have read and accept the <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Privacy Policy</a> and <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Terms of Service</a>.`;
+        } else {
+          termsLabel.innerHTML = `<a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Gizlilik Politikası</a> ve <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Kullanım Şartları</a>'nı okudum ve kabul ediyorum.`;
+        }
+      }
+      const kvkkLabel = el4('auth-kvkk-row')?.querySelector('span');
+      if (kvkkLabel) {
+        kvkkLabel.innerHTML = lang === 'en'
+          ? `I have read and accept the <a onclick="openDocModal('kvkk')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">KVKK Notice</a>.`
+          : `<a onclick="openDocModal('kvkk')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">KVKK Aydınlatma Metni</a>'ni okudum ve kabul ediyorum.`;
+      }
     }
     let currentUser = null;
 
@@ -3892,14 +3959,21 @@ window._geomeisterUser = currentUser;
       document.getElementById('auth-modal').dataset.tab = tab;
       const identifierInp = document.getElementById('auth-identifier');
       const emailInp = document.getElementById('auth-email');
+      const termsRow = document.getElementById('auth-terms-row');
+      const termsCheck = document.getElementById('auth-terms-check');
+      const kvkkCheck = document.getElementById('auth-kvkk-check');
       if (tab === 'register') {
-        // Kayıt: e-posta ayrı + identifier kullanıcı adı için gizle
         if (identifierInp) { identifierInp.style.display = 'none'; identifierInp.value = ''; }
         if (emailInp) { emailInp.style.display = 'block'; }
+        if (termsRow) termsRow.style.display = 'block';
+        if (termsCheck) { termsCheck.checked = false; termsCheck.disabled = true; }
+        if (kvkkCheck) { kvkkCheck.checked = false; kvkkCheck.disabled = true; }
+        // KVKK satırını Türkiye kontrolüne göre göster/gizle
+        _showKvkkIfTurkey();
       } else {
-        // Giriş: sadece identifier (e-posta veya kullanıcı adı)
         if (identifierInp) { identifierInp.style.display = 'block'; }
         if (emailInp) { emailInp.style.display = 'none'; emailInp.value = ''; }
+        if (termsRow) termsRow.style.display = 'none';
       }
     }
 
@@ -3970,6 +4044,23 @@ window._geomeisterUser = currentUser;
       try {
         let fireUser;
         if (tab === 'register') {
+          // Sözleşme onayı kontrolü
+          const termsCheck = document.getElementById('auth-terms-check');
+          const kvkkCheck = document.getElementById('auth-kvkk-check');
+          const kvkkRow = document.getElementById('auth-kvkk-row');
+          const kvkkRequired = kvkkRow && kvkkRow.style.display !== 'none';
+          if (!termsCheck || !termsCheck.checked) {
+            errEl.textContent = lang === 'en'
+              ? 'Please read and accept the Privacy Policy and Terms of Service.'
+              : 'Lütfen Gizlilik Politikası ve Kullanım Şartları\'nı okuyup onaylayın.';
+            _resetBtn(); return;
+          }
+          if (kvkkRequired && (!kvkkCheck || !kvkkCheck.checked)) {
+            errEl.textContent = lang === 'en'
+              ? 'Please read and accept the KVKK Notice.'
+              : 'Lütfen KVKK Aydınlatma Metni\'ni okuyup onaylayın.';
+            _resetBtn(); return;
+          }
           // Kayıt: e-posta zorunlu
           const email = (document.getElementById('auth-email').value || '').trim();
           if (!email) { errEl.textContent = lang === 'en' ? 'Enter email' : 'E-posta girin'; _resetBtn(); return; }
@@ -4192,6 +4283,145 @@ window._geomeisterUser = currentUser;
         </div>
       `;
       document.body.appendChild(modal);
+    }
+
+    function showKvkk() {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,26,.97);z-index:600;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:500px;width:92%;max-height:80vh;overflow-y:auto;">
+          <h2 style="font-family:'Bebas Neue',cursive;font-size:1.6rem;color:var(--accent);margin-bottom:16px;text-align:center;">KVKK AYDINLATMA METNİ</h2>
+          <div style="color:var(--text);line-height:1.6;font-size:.85rem;">
+            <p><strong>Veri Sorumlusu:</strong> Ares | aresmungan@gmail.com</p><br>
+            <p><strong>Toplanan Veriler:</strong> Kullanıcı adı, e-posta, oyun skorları, cihaz bilgisi.</p><br>
+            <p><strong>İşleme Amaçları:</strong> Oyun hizmeti sunmak, liderlik tablosu yönetimi, teknik destek.</p><br>
+            <p><strong>Aktarım:</strong> Google Firebase (kimlik doğrulama, veritabanı) ve Google AdMob (reklam) ile paylaşılır.</p><br>
+            <p><strong>Haklarınız (KVKK m.11):</strong> Verilerinize erişim, düzeltme, silme ve itiraz hakkına sahipsiniz. Başvuru: aresmungan@gmail.com</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" style="width:100%;margin-top:20px;padding:12px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',cursive;font-size:1.1rem;cursor:pointer;">TAMAM</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // Belge modalı — iframe ile HTML dosyasını aç, sonuna kadar okunmadan checkbox aktif olmaz
+    function openDocModal(type) {
+      const urls = { privacy: 'privacy.html', terms: 'terms.html', kvkk: 'kvkk.html' };
+      const checkIds = { privacy: 'auth-terms-check', terms: 'auth-terms-check', kvkk: 'auth-kvkk-check' };
+      const hintIds = { privacy: 'auth-terms-hint', terms: 'auth-terms-hint', kvkk: 'auth-kvkk-hint' };
+      const url = (lang === 'en' && type === 'privacy') ? 'privacy_en.html'
+                : (lang === 'en' && type === 'terms') ? 'terms_en.html'
+                : urls[type];
+      const checkId = checkIds[type];
+      const hintId = hintIds[type];
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,26,.97);z-index:700;display:flex;flex-direction:column;';
+      overlay.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;">
+          <span style="font-family:\'Bebas Neue\',cursive;font-size:1.1rem;color:var(--accent);letter-spacing:2px;" id="doc-modal-title">Yükleniyor…</span>
+          <button onclick="this.closest('[data-doc-overlay]').remove()" style="background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:4px 8px;">✕</button>
+        </div>
+        <iframe src="${url}" style="flex:1;border:none;background:#fff;" id="doc-iframe"></iframe>
+        <div style="padding:12px 16px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0;text-align:center;">
+          <div id="doc-scroll-hint" style="color:var(--accent);font-size:.82rem;margin-bottom:8px;">
+            ${lang === 'en' ? '⬇ Scroll to the bottom to accept' : '⬇ Kabul etmek için sayfanın sonuna kadar kaydırın'}
+          </div>
+          <button id="doc-accept-btn" disabled
+            style="width:100%;padding:12px;background:var(--border);color:var(--muted);border:none;border-radius:10px;font-family:\'Bebas Neue\',cursive;font-size:1.1rem;letter-spacing:2px;cursor:not-allowed;transition:all .2s;">
+            ${lang === 'en' ? 'READ TO END TO ACCEPT' : 'KABUL ETMEK İÇİN SONUNA KADAR OKU'}
+          </button>
+        </div>
+      `;
+      overlay.setAttribute('data-doc-overlay', '1');
+      document.body.appendChild(overlay);
+
+      // iframe yüklenince scroll takibi başlat
+      const iframe = overlay.querySelector('#doc-iframe');
+      const acceptBtn = overlay.querySelector('#doc-accept-btn');
+      const scrollHint = overlay.querySelector('#doc-scroll-hint');
+      const titleEl = overlay.querySelector('#doc-modal-title');
+
+      iframe.onload = () => {
+        try {
+          const titles = { privacy: lang === 'en' ? 'Privacy Policy' : 'Gizlilik Politikası', terms: lang === 'en' ? 'Terms of Service' : 'Kullanım Şartları', kvkk: 'KVKK' };
+          titleEl.textContent = titles[type] || '';
+          const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+          const iWin = iframe.contentWindow;
+
+          const unlock = () => {
+            acceptBtn.disabled = false;
+            acceptBtn.style.background = 'linear-gradient(135deg,var(--accent2),var(--accent))';
+            acceptBtn.style.color = '#000';
+            acceptBtn.style.cursor = 'pointer';
+            acceptBtn.textContent = lang === 'en' ? 'ACCEPT' : 'KABUL ET';
+            scrollHint.style.display = 'none';
+          };
+
+          // Yöntem 1: #doc-end IntersectionObserver
+          const endEl = iDoc.getElementById('doc-end');
+          if (endEl && iWin.IntersectionObserver) {
+            const obs = new iWin.IntersectionObserver(entries => {
+              if (entries[0].isIntersecting) { unlock(); obs.disconnect(); }
+            }, { threshold: 0.1 });
+            obs.observe(endEl);
+          }
+
+          // Yöntem 2: scroll fallback
+          const checkScroll = () => {
+            const scrolled = iDoc.documentElement.scrollTop || iDoc.body.scrollTop;
+            const total = iDoc.documentElement.scrollHeight - iDoc.documentElement.clientHeight;
+            if (total <= 10 || scrolled >= total - 60) unlock();
+          };
+          iWin.addEventListener('scroll', checkScroll, { passive: true });
+          checkScroll();
+        } catch(e) {
+          // cross-origin fallback
+          acceptBtn.disabled = false;
+          acceptBtn.style.background = 'linear-gradient(135deg,var(--accent2),var(--accent))';
+          acceptBtn.style.color = '#000';
+          acceptBtn.style.cursor = 'pointer';
+          acceptBtn.textContent = lang === 'en' ? 'ACCEPT' : 'KABUL ET';
+          scrollHint.style.display = 'none';
+        }
+      };
+
+      acceptBtn.onclick = () => {
+        if (acceptBtn.disabled) return;
+        const cb = document.getElementById(checkId);
+        if (cb) { cb.checked = true; cb.disabled = false; }
+        const hint = document.getElementById(hintId);
+        if (hint) hint.style.display = 'none';
+        overlay.remove();
+      };
+    }
+
+    // Türkiye IP kontrolü — KVKK satırını göster/gizle
+    let _isTurkeyUser = null;
+    async function _showKvkkIfTurkey() {
+      const kvkkRow = document.getElementById('auth-kvkk-row');
+      if (!kvkkRow) return;
+      // Daha önce kontrol edildiyse cache kullan
+      if (_isTurkeyUser !== null) {
+        kvkkRow.style.display = _isTurkeyUser ? 'block' : 'none';
+        return;
+      }
+      // Tarayıcı dili Türkçe ise büyük ihtimalle TR kullanıcısı
+      const browserLang = navigator.language || navigator.userLanguage || '';
+      if (browserLang.toLowerCase().startsWith('tr')) {
+        _isTurkeyUser = true;
+        kvkkRow.style.display = 'block';
+        return;
+      }
+      // IP tabanlı kontrol
+      try {
+        const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+        const data = await res.json();
+        _isTurkeyUser = data.country_code === 'TR';
+      } catch(e) {
+        _isTurkeyUser = false;
+      }
+      kvkkRow.style.display = _isTurkeyUser ? 'block' : 'none';
     }
 
     // ===== KEYBIND SİSTEMİ =====
@@ -7377,7 +7607,7 @@ window._geomeisterUser = currentUser;
         <h2 id="mp-join-h2">🔗 KOD İLE KATIL</h2>
         <div class="mp-sub" id="mp-join-sub">Arkadaşından aldığın 4 harfli kodu gir</div>
         <div class="mp-error" id="mp-join-error"></div>
-        <input class="mp-input" id="mp-join-code" placeholder="LOBİ KODU (4 harf)" maxlength="4"
+        <input class="mp-input" id="mp-join-code" placeholder="LOBBY CODE (4 CHARS)" maxlength="4"
           style="text-transform:uppercase;letter-spacing:4px;font-size:1.4rem;text-align:center;font-family:'Bebas Neue',cursive;" />
         <div id="mp-join-password-row" style="display:none">
           <input class="mp-input" id="mp-join-password" placeholder="Lobi şifresi" maxlength="20" type="text" />
@@ -7400,14 +7630,14 @@ window._geomeisterUser = currentUser;
         </div>
         <!-- Aşama 2: Arama -->
         <div id="mp-mm-searching" style="display:none">
-          <h2 id="mp-mm-h2">⚡ EŞLEŞTİRİLİYOR</h2>
+          <h2 id="mp-mm-h2">⚡ QUICK MATCH</h2>
           <div class="mp-sub" id="mp-mm-sub"></div>
           <div class="mp-error" id="mp-mm-error"></div>
           <div style="text-align:center;padding:16px 0;">
             <div id="mp-mm-spinner" style="font-size:2.5rem;margin-bottom:8px;">🔍</div>
             <div id="mp-mm-timer" style="font-family:'Bebas Neue',cursive;font-size:2.8rem;color:var(--accent);">20
             </div>
-            <div style="color:var(--muted);font-size:.82rem;margin-top:4px;" id="mp-mm-hint">Rakip aranıyor…</div>
+            <div style="color:var(--muted);font-size:.82rem;margin-top:4px;" id="mp-mm-hint">Looking for an opponent…</div>
           </div>
           <!-- Aralık genişletme sorusu -->
           <div id="mp-mm-expand-box"
@@ -7431,7 +7661,7 @@ window._geomeisterUser = currentUser;
         <div class="mp-sub" id="mp-browse-sub">Açık lobiye tıkla, 🔒 şifreli lobiye şifre gir</div>
         <div class="mp-error" id="mp-browse-error"></div>
         <div id="mp-lobby-list">
-          <div class="mp-lobby-empty" id="mp-browse-empty">Aranıyor…</div>
+          <div class="mp-lobby-empty" id="mp-browse-empty">Searching…</div>
         </div>
         <!-- Şifreli lobi için gizli modal -->
         <div id="mp-browse-pw-box"
@@ -8563,7 +8793,7 @@ setTimeout(() => mpStartMultiplayerGame(), 800);
           if (now - (d.createdAt || 0) < 30 * 60 * 1000) docs.push(doc); // 30dk
         });
         docs.sort((a, b) => (b.data().createdAt || 0) - (a.data().createdAt || 0));
-        if (!docs.length) { listEl.innerHTML = '<div class="mp-lobby-empty">Şu an açık lobi yok 😴</div>'; return; }
+        if (!docs.length) { listEl.innerHTML = '<div class="mp-lobby-empty">' + (lang === 'en' ? 'No open lobbies right now 😴' : 'Şu an açık lobi yok 😴') + '</div>'; return; }
         docs.forEach(doc => {
           const d = doc.data();
           if (d.hostId === currentUser?.username) return; // kendi lobiyi gösterme
@@ -8583,9 +8813,9 @@ setTimeout(() => mpStartMultiplayerGame(), 800);
           card.onclick = () => mpBrowseSelectLobby(doc, locked);
           listEl.appendChild(card);
         });
-        if (!listEl.children.length) listEl.innerHTML = '<div class="mp-lobby-empty">Katılabileceğin lobi yok</div>';
+        if (!listEl.children.length) listEl.innerHTML = '<div class="mp-lobby-empty">' + (lang === 'en' ? 'No lobbies available to join' : 'Katılabileceğin lobi yok') + '</div>';
       } catch (e) {
-        listEl.innerHTML = '<div class="mp-lobby-empty">Yükleme hatası: ' + e.message + '</div>';
+        listEl.innerHTML = '<div class="mp-lobby-empty">' + (lang === 'en' ? 'Load error: ' : 'Yükleme hatası: ') + e.message + '</div>';
       }
     }
 
@@ -9741,7 +9971,8 @@ async function mpForfeitAndExit(silent) {
 
       document.addEventListener('DOMContentLoaded', function () {
         // Auth ekranı
-        iosFix('auth-lang-toggle', () => setLang(lang==='tr'?'en':'tr'));
+        iosFix('auth-lang-tr', () => setLang('tr'));
+        iosFix('auth-lang-en', () => setLang('en'));
         iosFix('lang-tr', () => setLang('tr'));
         iosFix('lang-en', () => setLang('en'));
         // Welcome ekranı

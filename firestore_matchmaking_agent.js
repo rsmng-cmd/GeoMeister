@@ -95,13 +95,13 @@
   }
 
   function getModeLabel(mode) {
-    const labels = {
-      world:    "Dünya",
-      europe:   "Avrupa",
-      turkey:   "Türkiye",
-      flag:     "Bayraklar"
+    const isEn = (typeof lang !== 'undefined' && lang === 'en');
+    const labels = isEn ? {
+      world: 'World', europe: 'Europe', turkey: 'Turkey', flag: 'Flags'
+    } : {
+      world: 'Dünya', europe: 'Avrupa', turkey: 'Türkiye', flag: 'Bayraklar'
     };
-    return labels[mode] || "Dünya";
+    return labels[mode] || (isEn ? 'World' : 'Dünya');
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -118,9 +118,9 @@
       unsubscribeMatchListener = null;
     }
 
-    setHeading("⚡ EŞLEŞTİRİLİYOR");
+    setHeading(typeof lang !== 'undefined' && lang === 'en' ? '⚡ MATCHING…' : '⚡ EŞLEŞTİRİLİYOR');
     setSpinner("🔍");
-    setHint(getModeLabel(mode) + " modunda rakip aranıyor…");
+    setHint(getModeLabel(mode) + (typeof lang !== 'undefined' && lang === 'en' ? ' — looking for opponent…' : ' modunda rakip aranıyor…'));
     setError("");
     await db.collection("matchmaking").doc(me.uid).set({
       uid: me.uid,
@@ -141,7 +141,7 @@
     setTimeout(function () { findMatch(mode, 50); }, 1000);
 
     setTimeout(function () {
-      setHint("Rakip bulunamadı, aralık genişletiliyor…");
+      setHint(typeof lang !== 'undefined' && lang === 'en' ? 'No opponent found, expanding range…' : 'Rakip bulunamadı, aralık genişletiliyor…');
       findMatch(mode, null);
     }, 15000);
 
@@ -234,7 +234,7 @@
     if (!snap.exists) return;
     if (snap.data().status !== "searching") return;
 
-    setHint("Rakip bulunamadı, bot ile eşleşiliyor…");
+    setHint(typeof lang !== 'undefined' && lang === 'en' ? 'No opponent found, matching with bot…' : 'Rakip bulunamadı, bot ile eşleşiliyor…');
 
     const family = getRankFamily(me.rankKey);
     const rule   = BOT_RULES[family];
@@ -271,8 +271,10 @@
   // ─────────────────────────────────────────────────────────────
   function showMatchFound(data) {
     setSpinner("✅");
-    setHeading("EŞLEŞİLDİ!");
-    setHint(data.bot ? "Bot ile eşleşildi, oyun başlıyor…" : "Rakip bulundu, oyun başlıyor…");
+    setHeading(typeof lang !== 'undefined' && lang === 'en' ? 'MATCHED!' : 'EŞLEŞİLDİ!');
+    setHint(data.bot
+      ? (typeof lang !== 'undefined' && lang === 'en' ? 'Matched with bot, starting game…' : 'Bot ile eşleşildi, oyun başlıyor…')
+      : (typeof lang !== 'undefined' && lang === 'en' ? 'Opponent found, starting game…' : 'Rakip bulundu, oyun başlıyor…'));
 
     window.currentMatchData = data;
     window.mpMode = data.mode;
@@ -283,7 +285,7 @@
       if (typeof mpStartGame === "function") { mpStartGame(data); return; }
       if (typeof mpStartLobbyGame === "function") { mpStartLobbyGame(data.matchId); return; }
       console.error("mpStartGame veya mpStartLobbyGame bulunamadı.");
-      setError("Oyun başlatılamadı. Lütfen tekrar dene.");
+      setError(typeof lang !== 'undefined' && lang === 'en' ? 'Could not start game. Please try again.' : 'Oyun başlatılamadı. Lütfen tekrar dene.');
       setSpinner("⚠️");
     }, 800);
   }

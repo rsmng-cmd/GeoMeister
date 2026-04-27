@@ -8,6 +8,14 @@
   "theme_color": "#0a0e1a",
   "background_color": "#0a0e1a",
   "scope": "./",
+  "icons": [
+    {
+      "src": "./Logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
   "categories": ["games", "education"],
   "lang": "tr",
   "dir": "ltr",
