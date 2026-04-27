@@ -4348,15 +4348,21 @@ window._geomeisterUser = currentUser;
           titleEl.textContent = titles[type] || '';
           const iDoc = iframe.contentDocument || iframe.contentWindow.document;
           const iWin = iframe.contentWindow;
+          const hasCheckbox = !!document.getElementById(checkId);
 
           const unlock = () => {
             acceptBtn.disabled = false;
             acceptBtn.style.background = 'linear-gradient(135deg,var(--accent2),var(--accent))';
             acceptBtn.style.color = '#000';
             acceptBtn.style.cursor = 'pointer';
-            acceptBtn.textContent = lang === 'en' ? 'ACCEPT' : 'KABUL ET';
+            acceptBtn.textContent = hasCheckbox
+              ? (lang === 'en' ? 'ACCEPT' : 'KABUL ET')
+              : (lang === 'en' ? 'CLOSE' : 'KAPAT');
             scrollHint.style.display = 'none';
           };
+
+          // Welcome ekranından açıldıysa (checkbox yok) direkt aktif et
+          if (!hasCheckbox) { unlock(); return; }
 
           // Yöntem 1: #doc-end IntersectionObserver
           const endEl = iDoc.getElementById('doc-end');
@@ -4381,10 +4387,16 @@ window._geomeisterUser = currentUser;
           acceptBtn.style.background = 'linear-gradient(135deg,var(--accent2),var(--accent))';
           acceptBtn.style.color = '#000';
           acceptBtn.style.cursor = 'pointer';
-          acceptBtn.textContent = lang === 'en' ? 'ACCEPT' : 'KABUL ET';
+          acceptBtn.textContent = lang === 'en' ? 'CLOSE' : 'KAPAT';
           scrollHint.style.display = 'none';
         }
       };
+
+      // Buton metni: checkbox varsa "Kabul Et", yoksa "Kapat"
+      const hasCheckbox = !!document.getElementById(checkId);
+      acceptBtn.textContent = hasCheckbox
+        ? (lang === 'en' ? 'READ TO END TO ACCEPT' : 'KABUL ETMEK İÇİN SONUNA KADAR OKU')
+        : (lang === 'en' ? 'CLOSE' : 'KAPAT');
 
       acceptBtn.onclick = () => {
         if (acceptBtn.disabled) return;
