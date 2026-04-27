@@ -1,0 +1,24 @@
+{
+  "name": "GeoMeister - Geography Game",
+  "short_name": "GeoMeister",
+  "description": "Test your geography knowledge with this fun and challenging game!",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0a0e1a",
+  "background_color": "#0a0e1a",
+  "scope": "./",
+  "categories": ["games", "education"],
+  "lang": "tr",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Hızlı Oyun",
+      "short_name": "Oyna",
+      "description": "Hemen oyuna başla",
+      "url": "./"
+    }
+  ]
+}

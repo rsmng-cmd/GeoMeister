@@ -1,0 +1,12 @@
+# GitHub Pages Jekyll ayarları
+plugins:
+  - jekyll-sitemap
+
+# PWA için gerekli dosyaları exclude etme
+exclude:
+  - README.md
+  - .gitignore
+
+# MIME types için
+include:
+  - .htaccess
