@@ -1692,6 +1692,77 @@
       }
     }
 
+    /* ===== PROFIL MODALI ===== */
+    #profile-modal {
+      position: fixed; inset: 0;
+      background: rgba(10,14,26,.97);
+      display: none; align-items: center; justify-content: center;
+      z-index: 480; overflow-y: auto; padding: 16px 0;
+    }
+    #profile-modal.open { display: flex; }
+    #profile-box {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px 28px;
+      max-width: 480px; width: 92%; margin: auto;
+    }
+    .profile-header {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+    }
+    .profile-avatar-big {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', cursive; font-size: 1.6rem; color: #000;
+      flex-shrink: 0;
+    }
+    .profile-username { font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 2px; }
+    .profile-section-title {
+      font-family: 'Bebas Neue', cursive; font-size: .9rem; letter-spacing: 2px;
+      color: var(--muted); margin: 16px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;
+    }
+    .profile-stat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px;
+    }
+    .profile-stat-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 8px; text-align: center;
+    }
+    .profile-stat-card .psv {
+      font-family: 'Bebas Neue', cursive; font-size: 1.3rem; color: var(--accent);
+    }
+    .profile-stat-card .psl {
+      font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;
+    }
+    .profile-rank-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 14px; margin-bottom: 6px;
+    }
+    .profile-rank-mode { font-size: .9rem; }
+    .profile-rank-right { display: flex; align-items: center; gap: 8px; }
+    /* Arama modal */
+    #search-modal {
+      position: fixed; inset: 0; background: rgba(10,14,26,.97);
+      display: none; align-items: center; justify-content: center; z-index: 480;
+    }
+    #search-modal.open { display: flex; }
+    #search-box {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 20px;
+      padding: 28px; max-width: 420px; width: 92%;
+    }
+    .search-result-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 6px; cursor: pointer; transition: border-color .15s;
+    }
+    .search-result-row:hover { border-color: var(--accent); }
+    .search-result-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', cursive; font-size: .9rem; color: #000; flex-shrink: 0;
+    }
+
     /* ===== MULTIPLAYER ===== */
     #mp-modal {
       position: fixed;
@@ -2876,7 +2947,7 @@
       </div>
     </div>
     <div id="user-info">
-      <div id="user-avatar">?</div>
+      <div id="user-avatar" onclick="openOwnProfile()" title="Profili Görüntüle" style="cursor:pointer;">?</div>
       <div id="user-name-display"
         style="font-size:.85rem;color:var(--text);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
         —</div>
@@ -2996,23 +3067,37 @@
           style="display:none;" />
         <input class="auth-input" id="auth-password" type="password" placeholder="Şifre" maxlength="40"
           autocomplete="current-password" />
+        <!-- Beni Hatırla — sadece giriş modunda -->
+        <div id="auth-remember-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <input type="checkbox" id="auth-remember-check"
+            style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;" />
+          <label for="auth-remember-check" style="font-size:.82rem;color:var(--muted);cursor:pointer;" id="auth-remember-label">Beni hatırla</label>
+        </div>
         <!-- Sözleşme onayı — sadece kayıt modunda gösterilir -->
         <div id="auth-terms-row" style="display:none;margin-bottom:12px;">
-          <!-- Kutucuk 1: Gizlilik + Kullanım Şartları -->
+          <!-- Kutucuk 1: Gizlilik Politikası -->
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
+              <input type="checkbox" id="auth-privacy-check" disabled
+                style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;" />
+              <span style="font-size:.8rem;color:var(--muted);line-height:1.5;" id="auth-privacy-label">
+                <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-privacy">Gizlilik Politikası</a>'nı
+                okudum ve kabul ediyorum.
+              </span>
+            </label>
+          </div>
+          <!-- Kutucuk 2: Kullanım Şartları -->
           <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
               <input type="checkbox" id="auth-terms-check" disabled
                 style="width:18px;height:18px;min-width:18px;margin-top:2px;accent-color:var(--accent);cursor:pointer;" />
               <span style="font-size:.8rem;color:var(--muted);line-height:1.5;" id="auth-terms-label">
-                <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-privacy">Gizlilik Politikası</a>
-                ve
                 <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;" id="lnk-terms">Kullanım Şartları</a>'nı
                 okudum ve kabul ediyorum.
               </span>
             </label>
-            <div id="auth-terms-hint" style="font-size:.72rem;color:var(--accent);margin-top:6px;margin-left:28px;display:none;" id="auth-terms-hint">⬆ Lütfen önce belgeleri okuyun</div>
           </div>
-          <!-- Kutucuk 2: KVKK — sadece TR kullanıcılar için -->
+          <!-- Kutucuk 3: KVKK — sadece TR kullanıcılar için -->
           <div id="auth-kvkk-row" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none;">
               <input type="checkbox" id="auth-kvkk-check" disabled
@@ -3022,7 +3107,6 @@
                 okudum ve kabul ediyorum.
               </span>
             </label>
-            <div id="auth-kvkk-hint" style="font-size:.72rem;color:var(--accent);margin-top:6px;margin-left:28px;display:none;">⬆ Lütfen önce KVKK metnini okuyun</div>
           </div>
         </div>
         <button type="button" class="auth-submit" id="auth-submit-btn">DEVAM</button>
@@ -3096,6 +3180,7 @@
           id="btn-mp-label">⚔️ MULTIPLAYER</button>
         <button type="button" class="overlay-btn secondary" onclick="showLeaderboard('welcome')" id="btn-welcome-lb">🏆
           LİDERLİK TABLOSU</button>
+        <button type="button" class="overlay-btn secondary" onclick="openSearchModal()" id="btn-search-player">🔍 OYUNCU ARA</button>
         <button type="button" class="overlay-btn secondary" onclick="openOptions('welcome')" id="btn-options-welcome">⚙️
           SEÇENEKLER</button>
         <div style="display:flex;gap:4px;margin-top:8px;justify-content:center;">
@@ -3227,6 +3312,58 @@
         <button type="button" onclick="closeOptions()"
           style="flex:1;padding:11px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:10px;color:#000;font-family:'Bebas Neue',cursive;font-size:.9rem;letter-spacing:1px;cursor:pointer;touch-action:manipulation;"
           id="opt-close-btn" onclick="closeOptions()">KAYDET</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OYUNCU ARAMA MODALI -->
+  <div id="search-modal">
+    <div id="search-box">
+      <h2 style="font-family:'Bebas Neue',cursive;font-size:1.6rem;color:var(--accent);letter-spacing:3px;margin-bottom:16px;text-align:center;" id="search-title">🔍 OYUNCU ARA</h2>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="search-input" class="auth-input" type="text" placeholder="Kullanıcı adı..." maxlength="20"
+          style="margin-bottom:0;flex:1;" />
+        <button type="button" onclick="doPlayerSearch()" id="search-btn"
+          style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#000;border:none;border-radius:8px;padding:0 16px;font-family:'Bebas Neue',cursive;font-size:1rem;cursor:pointer;">ARA</button>
+      </div>
+      <div id="search-results" style="max-height:300px;overflow-y:auto;"></div>
+      <button type="button" onclick="closeSearchModal()"
+        style="width:100%;margin-top:14px;padding:11px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Bebas Neue',cursive;font-size:.9rem;cursor:pointer;" id="search-close-btn">KAPAT</button>
+    </div>
+  </div>
+
+  <!-- OYUNCU PROFİL MODALI -->
+  <div id="profile-modal">
+    <div id="profile-box">
+      <div class="profile-header">
+        <div class="profile-avatar-big" id="profile-avatar-big">?</div>
+        <div>
+          <div class="profile-username" id="profile-username">—</div>
+          <div id="profile-rank-badge" style="margin-top:4px;"></div>
+        </div>
+        <button type="button" onclick="closeProfileModal()"
+          style="margin-left:auto;background:transparent;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;">✕</button>
+      </div>
+      <div id="profile-private-notice" style="display:none;text-align:center;padding:20px;color:var(--muted);font-size:.9rem;">
+        🔒 <span id="profile-private-text">Bu oyuncunun istatistikleri gizli!</span>
+      </div>
+      <div id="profile-stats-content">
+        <!-- Offline istatistikler -->
+        <div class="profile-section-title" id="profile-offline-title">OFFLİNE İSTATİSTİKLER</div>
+        <div id="profile-offline-grid"></div>
+        <!-- Online istatistikler -->
+        <div class="profile-section-title" id="profile-online-title">ONLİNE RANKLAR</div>
+        <div id="profile-online-grid"></div>
+      </div>
+      <!-- Gizlilik toggle (sadece kendi profilinde) -->
+      <div id="profile-privacy-toggle" style="display:none;margin-top:16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:.85rem;color:var(--text);" id="profile-privacy-label">İstatistiklerimi gizle</span>
+          <label class="mp-toggle">
+            <input type="checkbox" id="profile-privacy-check" onchange="toggleProfilePrivacy(this.checked)" />
+            <span class="mp-toggle-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -3784,7 +3921,27 @@ window._geomeisterUser = currentUser;
       if (el('mm-btn-options')) el('mm-btn-options').textContent = lang === 'tr' ? '⚙️ SEÇENEKLER' : '⚙️ OPTIONS';
       if (el('mm-btn-logout')) el('mm-btn-logout').textContent = lang === 'tr' ? '🚪 ÇIKIŞ YAP' : '🚪 LOG OUT';
       if (el('mm-btn-home')) el('mm-btn-home').textContent = lang === 'tr' ? '🏠 ANA MENÜ' : '🏠 MAIN MENU';
+      // Welcome kullanıcı metni dil değişince güncelle
+      const _userText = document.getElementById('welcome-user-text');
+      if (_userText) {
+        if (currentUser && !currentUser.isGuest) {
+          _userText.innerHTML = t('welcome') + ' <span id="welcome-username">' + currentUser.username + '</span>!';
+        } else if (currentUser && currentUser.isGuest) {
+          _userText.textContent = t('guest');
+        }
+      }
+      if (el('btn-search-player')) el('btn-search-player').textContent = lang === 'tr' ? '🔍 OYUNCU ARA' : '🔍 SEARCH PLAYER';
       if (el('btn-welcome-lb')) el('btn-welcome-lb').textContent = lang === 'tr' ? '🏆 SKOR TABLOSU' : '🏆 LEADERBOARD';
+      // Profil & Arama modal çevirileri
+      const el5 = (id) => document.getElementById(id);
+      if (el5('search-title')) el5('search-title').textContent = lang === 'tr' ? '🔍 OYUNCU ARA' : '🔍 SEARCH PLAYER';
+      if (el5('search-btn')) el5('search-btn').textContent = lang === 'tr' ? 'ARA' : 'SEARCH';
+      if (el5('search-close-btn')) el5('search-close-btn').textContent = lang === 'tr' ? 'KAPAT' : 'CLOSE';
+      if (el5('search-input')) el5('search-input').placeholder = lang === 'tr' ? 'Kullanıcı adı...' : 'Username...';
+      if (el5('profile-offline-title')) el5('profile-offline-title').textContent = lang === 'tr' ? 'OFFLİNE İSTATİSTİKLER' : 'OFFLINE STATS';
+      if (el5('profile-online-title')) el5('profile-online-title').textContent = lang === 'tr' ? 'ONLİNE RANKLAR' : 'ONLINE RANKS';
+      if (el5('profile-privacy-label')) el5('profile-privacy-label').textContent = lang === 'tr' ? 'İstatistiklerimi gizle' : 'Hide my stats';
+      if (el5('profile-privacy-label2')) el5('profile-privacy-label2').textContent = lang === 'tr' ? 'İstatistiklerimi gizle' : 'Hide my stats';
       if (el('btn-options-welcome')) el('btn-options-welcome').textContent = lang === 'tr' ? '⚙️ SEÇENEKLER' : '⚙️ OPTIONS';
       if (el('btn-welcome-logout')) el('btn-welcome-logout').textContent = lang === 'tr' ? '🚪 ÇIKIŞ YAP' : '🚪 LOG OUT';
       if (el('btn-privacy')) el('btn-privacy').textContent = lang === 'tr' ? 'Gizlilik' : 'Privacy';
@@ -3923,14 +4080,19 @@ window._geomeisterUser = currentUser;
       if (el4('auth-username-input')) el4('auth-username-input').placeholder = lang === 'en' ? 'Username (2-20 chars)' : 'Kullanıcı adı (2-20 karakter)';
       if (el4('auth-forgot-subtitle')) el4('auth-forgot-subtitle').textContent = lang === 'en' ? 'A password reset link will be sent to your email' : 'E-posta adresine şifre sıfırlama linki gönderilecek';
       if (el4('auth-forgot-email')) el4('auth-forgot-email').placeholder = lang === 'en' ? 'Email' : 'E-posta';
-      // Sözleşme onay label'ı
+      if (el4('auth-remember-label')) el4('auth-remember-label').textContent = lang === 'en' ? 'Remember me' : 'Beni hatırla';
+      // Sözleşme onay label'ları — her biri ayrı
+      const privacyLabel = el4('auth-privacy-label');
+      if (privacyLabel) {
+        privacyLabel.innerHTML = lang === 'en'
+          ? `I have read and accept the <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Privacy Policy</a>.`
+          : `<a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Gizlilik Politikası</a>'nı okudum ve kabul ediyorum.`;
+      }
       const termsLabel = el4('auth-terms-label');
       if (termsLabel) {
-        if (lang === 'en') {
-          termsLabel.innerHTML = `I have read and accept the <a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Privacy Policy</a> and <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Terms of Service</a>.`;
-        } else {
-          termsLabel.innerHTML = `<a onclick="openDocModal('privacy')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Gizlilik Politikası</a> ve <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Kullanım Şartları</a>'nı okudum ve kabul ediyorum.`;
-        }
+        termsLabel.innerHTML = lang === 'en'
+          ? `I have read and accept the <a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Terms of Service</a>.`
+          : `<a onclick="openDocModal('terms')" style="color:var(--accent);cursor:pointer;text-decoration:underline;">Kullanım Şartları</a>'nı okudum ve kabul ediyorum.`;
       }
       const kvkkLabel = el4('auth-kvkk-row')?.querySelector('span');
       if (kvkkLabel) {
@@ -3962,18 +4124,23 @@ window._geomeisterUser = currentUser;
       const termsRow = document.getElementById('auth-terms-row');
       const termsCheck = document.getElementById('auth-terms-check');
       const kvkkCheck = document.getElementById('auth-kvkk-check');
+      const rememberRow = document.getElementById('auth-remember-row');
       if (tab === 'register') {
         if (identifierInp) { identifierInp.style.display = 'none'; identifierInp.value = ''; }
         if (emailInp) { emailInp.style.display = 'block'; }
         if (termsRow) termsRow.style.display = 'block';
+        if (rememberRow) rememberRow.style.display = 'none';
         if (termsCheck) { termsCheck.checked = false; termsCheck.disabled = true; }
         if (kvkkCheck) { kvkkCheck.checked = false; kvkkCheck.disabled = true; }
-        // KVKK satırını Türkiye kontrolüne göre göster/gizle
+        const privacyCheck = document.getElementById('auth-privacy-check');
+        if (privacyCheck) { privacyCheck.checked = false; privacyCheck.disabled = true; }
         _showKvkkIfTurkey();
       } else {
         if (identifierInp) { identifierInp.style.display = 'block'; }
         if (emailInp) { emailInp.style.display = 'none'; emailInp.value = ''; }
         if (termsRow) termsRow.style.display = 'none';
+        if (rememberRow) rememberRow.style.display = 'flex';
+        _fillRememberedCredentials();
       }
     }
 
@@ -4045,14 +4212,21 @@ window._geomeisterUser = currentUser;
         let fireUser;
         if (tab === 'register') {
           // Sözleşme onayı kontrolü
+          const privacyCheck = document.getElementById('auth-privacy-check');
           const termsCheck = document.getElementById('auth-terms-check');
           const kvkkCheck = document.getElementById('auth-kvkk-check');
           const kvkkRow = document.getElementById('auth-kvkk-row');
           const kvkkRequired = kvkkRow && kvkkRow.style.display !== 'none';
+          if (!privacyCheck || !privacyCheck.checked) {
+            errEl.textContent = lang === 'en'
+              ? 'Please read and accept the Privacy Policy.'
+              : 'Lütfen Gizlilik Politikası\'nı okuyup onaylayın.';
+            _resetBtn(); return;
+          }
           if (!termsCheck || !termsCheck.checked) {
             errEl.textContent = lang === 'en'
-              ? 'Please read and accept the Privacy Policy and Terms of Service.'
-              : 'Lütfen Gizlilik Politikası ve Kullanım Şartları\'nı okuyup onaylayın.';
+              ? 'Please read and accept the Terms of Service.'
+              : 'Lütfen Kullanım Şartları\'nı okuyup onaylayın.';
             _resetBtn(); return;
           }
           if (kvkkRequired && (!kvkkCheck || !kvkkCheck.checked)) {
@@ -4102,6 +4276,15 @@ window._geomeisterUser = currentUser;
             new Promise((_, rej) => setTimeout(() => rej({ code: 'auth/timeout' }), 10000))
           ]);
           fireUser = cred.user;
+        }
+        // Beni Hatırla
+        const rememberCheck = document.getElementById('auth-remember-check');
+        if (rememberCheck && rememberCheck.checked) {
+          const identifier = (document.getElementById('auth-identifier').value || '').trim();
+          const rawPw = document.getElementById('auth-password').value || '';
+          _saveRememberedCredentials(identifier, rawPw);
+        } else {
+          _clearRememberedCredentials();
         }
         await _loadUserFromFirestore(fireUser.uid, '');
         _resetBtn();
@@ -4195,6 +4378,7 @@ window._geomeisterUser = currentUser;
       currentUser = null;
       gameMode = 'world';
       _loggingOut = true;
+      _clearRememberedCredentials(); // çıkış yapınca kayıtlı bilgileri sil
       if (auth) auth.signOut().catch(() => { }).finally(() => { setTimeout(() => { _loggingOut = false; }, 1000); });
       const savedLang = lang;
       document.getElementById('welcome-modal').style.display = 'none';
@@ -4307,8 +4491,8 @@ window._geomeisterUser = currentUser;
     // Belge modalı — iframe ile HTML dosyasını aç, sonuna kadar okunmadan checkbox aktif olmaz
     function openDocModal(type) {
       const urls = { privacy: 'privacy.html', terms: 'terms.html', kvkk: 'kvkk.html' };
-      const checkIds = { privacy: 'auth-terms-check', terms: 'auth-terms-check', kvkk: 'auth-kvkk-check' };
-      const hintIds = { privacy: 'auth-terms-hint', terms: 'auth-terms-hint', kvkk: 'auth-kvkk-hint' };
+      const checkIds = { privacy: 'auth-privacy-check', terms: 'auth-terms-check', kvkk: 'auth-kvkk-check' };
+      const hintIds = { privacy: 'auth-privacy-hint', terms: 'auth-terms-hint', kvkk: 'auth-kvkk-hint' };
       const url = (lang === 'en' && type === 'privacy') ? 'privacy_en.html'
                 : (lang === 'en' && type === 'terms') ? 'terms_en.html'
                 : urls[type];
@@ -4361,8 +4545,8 @@ window._geomeisterUser = currentUser;
             scrollHint.style.display = 'none';
           };
 
-          // Welcome ekranından açıldıysa (checkbox yok) direkt aktif et
-          if (!hasCheckbox) { unlock(); return; }
+          // Welcome ekranından açıldıysa (checkbox yok) veya daha önce okunmuşsa direkt aktif et
+          if (!hasCheckbox || alreadyRead) { unlock(); return; }
 
           // Yöntem 1: #doc-end IntersectionObserver
           const endEl = iDoc.getElementById('doc-end');
@@ -4394,6 +4578,9 @@ window._geomeisterUser = currentUser;
 
       // Buton metni: checkbox varsa "Kabul Et", yoksa "Kapat"
       const hasCheckbox = !!document.getElementById(checkId);
+      // Daha önce okunmuşsa (disabled=false) direkt aktif aç
+      const cb0 = document.getElementById(checkId);
+      const alreadyRead = cb0 && !cb0.disabled;
       acceptBtn.textContent = hasCheckbox
         ? (lang === 'en' ? 'READ TO END TO ACCEPT' : 'KABUL ETMEK İÇİN SONUNA KADAR OKU')
         : (lang === 'en' ? 'CLOSE' : 'KAPAT');
@@ -4434,6 +4621,33 @@ window._geomeisterUser = currentUser;
         _isTurkeyUser = false;
       }
       kvkkRow.style.display = _isTurkeyUser ? 'block' : 'none';
+    }
+
+    // ===== BENİ HATIRLA =====
+    const REMEMBER_KEY = 'geomeister_remember';
+
+    function _saveRememberedCredentials(identifier, password) {
+      try {
+        localStorage.setItem(REMEMBER_KEY, JSON.stringify({ identifier, password }));
+      } catch(e) {}
+    }
+
+    function _clearRememberedCredentials() {
+      try { localStorage.removeItem(REMEMBER_KEY); } catch(e) {}
+    }
+
+    function _fillRememberedCredentials() {
+      try {
+        const raw = localStorage.getItem(REMEMBER_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        const identifierInp = document.getElementById('auth-identifier');
+        const passwordInp = document.getElementById('auth-password');
+        const rememberCheck = document.getElementById('auth-remember-check');
+        if (identifierInp && data.identifier) identifierInp.value = data.identifier;
+        if (passwordInp && data.password) passwordInp.value = data.password;
+        if (rememberCheck) rememberCheck.checked = true;
+      } catch(e) {}
     }
 
     // ===== KEYBIND SİSTEMİ =====
@@ -4632,6 +4846,30 @@ window._geomeisterUser = currentUser;
       applyLang();
       updateUserUI();
       loadKeybinds();
+      // Eski hesaplar için wins_/losses_ alanlarını arka planda initialize et
+      if (currentUser && db) _initWinsLossesIfMissing();
+    }
+
+    // Eski hesaplar için wins_/losses_ alanlarını 0 ile initialize et (bir kez)
+    async function _initWinsLossesIfMissing() {
+      if (!currentUser || !db) return;
+      const key = currentUser.username.toLowerCase();
+      try {
+        const snap = await db.collection('users').doc(key).get();
+        if (!snap.exists) return;
+        const u = snap.data();
+        const modes = ['world', 'europe', 'turkey', 'flag'];
+        const updates = {};
+        modes.forEach(m => {
+          if (u['wins_' + m] === undefined) updates['wins_' + m] = 0;
+          if (u['losses_' + m] === undefined) updates['losses_' + m] = 0;
+        });
+        if (Object.keys(updates).length > 0) {
+          await db.collection('users').doc(key).update(updates);
+          // Local cache güncelle
+          Object.assign(currentUser, updates);
+        }
+      } catch(e) { /* sessizce geç */ }
     }
 
     function goToWelcome() {
@@ -5169,7 +5407,7 @@ window._geomeisterUser = currentUser;
         const isMe = currentUser && u.username.toLowerCase() === currentUser.username.toLowerCase();
         const rankClass = globalRank < 3 ? ['gold', 'silver', 'bronze'][globalRank] : 'other';
         const rankLabel = globalRank < 3 ? rankEmojis[globalRank] : '#' + (globalRank + 1);
-        return '<div class="lb-row' + (isMe ? ' lb-me-row' : '') + '">' +
+        return '<div class="lb-row' + (isMe ? ' lb-me-row' : '') + '" onclick="openProfileByUsername(\'' + u.username + '\')" style="cursor:pointer;" title="' + (lang === 'en' ? 'View profile' : 'Profili görüntüle') + '">' +
           '<div class="lb-rank ' + rankClass + '">' + rankLabel + '</div>' +
           '<div class="lb-avatar">' + u.username[0].toUpperCase() + '</div>' +
           '<div class="lb-name' + (isMe ? ' me' : '') + '">' + u.username + (isMe ? ' (' + (lang === 'tr' ? 'Sen' : 'You') + ')' : '') + '</div>' +
@@ -5201,6 +5439,192 @@ window._geomeisterUser = currentUser;
       }
     }
 
+
+    // ===== OYUNCU PROFİL SİSTEMİ =====
+
+    function openOwnProfile() {
+      if (!currentUser) return;
+      openProfileByUsername(currentUser.username);
+    }
+
+    function openSearchModal() {
+      document.getElementById('search-modal').classList.add('open');
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-results').innerHTML = '';
+      setTimeout(() => document.getElementById('search-input').focus(), 100);
+    }
+
+    function closeSearchModal() {
+      document.getElementById('search-modal').classList.remove('open');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profile-modal').classList.remove('open');
+    }
+
+    async function doPlayerSearch() {
+      const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+      const resultsEl = document.getElementById('search-results');
+      if (!q || q.length < 2) {
+        resultsEl.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:12px;">' + (lang === 'en' ? 'Enter at least 2 characters.' : 'En az 2 karakter girin.') + '</div>';
+        return;
+      }
+      resultsEl.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:12px;">⏳</div>';
+      try {
+        // Tüm kullanıcıları çek, client-side substring filtrele
+        const snap = await db.collection('users').limit(500).get();
+        const matches = [];
+        snap.forEach(doc => {
+          const u = doc.data();
+          if (u.username && u.username.toLowerCase().includes(q)) {
+            matches.push(u);
+          }
+        });
+        matches.sort((a, b) => {
+          // Baştan eşleşenler önce
+          const aStarts = a.username.toLowerCase().startsWith(q) ? 0 : 1;
+          const bStarts = b.username.toLowerCase().startsWith(q) ? 0 : 1;
+          return aStarts - bStarts || a.username.localeCompare(b.username);
+        });
+        if (!matches.length) {
+          resultsEl.innerHTML = '<div style="color:var(--muted);font-size:.85rem;text-align:center;padding:12px;">' + (lang === 'en' ? 'No players found.' : 'Oyuncu bulunamadı.') + '</div>';
+          return;
+        }
+        resultsEl.innerHTML = '';
+        matches.slice(0, 20).forEach(u => {
+          const row = document.createElement('div');
+          row.className = 'search-result-row';
+          // Eşleşen kısmı vurgula
+          const uname = u.username;
+          const idx = uname.toLowerCase().indexOf(q);
+          const highlighted = idx >= 0
+            ? uname.slice(0, idx) + '<span style="color:var(--accent);font-weight:700;">' + uname.slice(idx, idx + q.length) + '</span>' + uname.slice(idx + q.length)
+            : uname;
+          row.innerHTML = '<div class="search-result-avatar">' + uname[0].toUpperCase() + '</div>' +
+            '<div style="flex:1"><div style="font-size:.95rem;">' + highlighted + '</div>' +
+            '<div style="font-size:.72rem;color:var(--muted);">' + (u.gamesPlayed || 0) + ' ' + t('games') + '</div></div>' +
+            '<div style="font-size:.75rem;color:var(--muted);">👁</div>';
+          row.onclick = () => { closeSearchModal(); openProfileByUsername(u.username); };
+          resultsEl.appendChild(row);
+        });
+      } catch(e) {
+        resultsEl.innerHTML = '<div style="color:var(--red);font-size:.82rem;text-align:center;padding:12px;">' + (lang === 'en' ? 'Error: ' : 'Hata: ') + e.message + '</div>';
+      }
+    }
+
+    async function openProfileByUsername(username) {
+      if (!username) return;
+      const key = username.toLowerCase();
+      document.getElementById('profile-modal').classList.add('open');
+      document.getElementById('profile-avatar-big').textContent = username[0].toUpperCase();
+      document.getElementById('profile-username').textContent = username;
+      document.getElementById('profile-rank-badge').innerHTML = '';
+      document.getElementById('profile-stats-content').style.display = 'block';
+      document.getElementById('profile-private-notice').style.display = 'none';
+      document.getElementById('profile-offline-grid').innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px;">⏳ ' + (lang === 'en' ? 'Loading…' : 'Yükleniyor…') + '</div>';
+      document.getElementById('profile-online-grid').innerHTML = '';
+      // Kendi profili mi?
+      const isOwn = currentUser && currentUser.username.toLowerCase() === key;
+      const toggleRow = document.getElementById('profile-privacy-toggle');
+      toggleRow.style.display = isOwn ? 'block' : 'none';
+      try {
+        const snap = await db.collection('users').doc(key).get();
+        if (!snap.exists) {
+          document.getElementById('profile-offline-grid').innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px;">' + (lang === 'en' ? 'Player not found.' : 'Oyuncu bulunamadı.') + '</div>';
+          return;
+        }
+        const u = snap.data();
+        // Gizlilik kontrolü
+        if (u.statsPrivate && !isOwn) {
+          document.getElementById('profile-stats-content').style.display = 'none';
+          document.getElementById('profile-private-notice').style.display = 'block';
+          document.getElementById('profile-private-text').textContent = lang === 'en'
+            ? 'This player\'s stats are private!' : 'Bu oyuncunun istatistikleri gizli!';
+          return;
+        }
+        // Kendi profili — gizlilik toggle'ı ayarla
+        if (isOwn) {
+          document.getElementById('profile-privacy-check').checked = !!u.statsPrivate;
+        }
+        // Offline istatistikler
+        const modes = [
+          { key: 'world',  label: lang === 'en' ? '🌍 World' : '🌍 Dünya',    sf: 'bestScore',      lf: 'bestLevel',       gf: 'gamesPlayedWorld',  gfAlt: 'gamesPlayed' },
+          { key: 'europe', label: lang === 'en' ? '🇪🇺 Europe' : '🇪🇺 Avrupa', sf: 'bestScoreEurope', lf: 'bestLevelEurope',  gf: 'gamesPlayedEurope' },
+          { key: 'turkey', label: lang === 'en' ? '🇹🇷 Turkey' : '🇹🇷 Türkiye', sf: 'bestScoreTurkey', lf: 'bestLevelTurkey',  gf: 'gamesPlayedTurkey' },
+          { key: 'flag',   label: lang === 'en' ? '🚩 Flags' : '🚩 Bayraklar', sf: 'bestScoreFlag',   lf: 'bestLevelFlag',    gf: 'gamesPlayedFlag' },
+        ];
+        let offlineHtml = '';
+        modes.forEach(m => {
+          const best = u[m.sf] || 0;
+          const games = u[m.gf] || (m.gfAlt ? u[m.gfAlt] : 0) || 0;
+          const lvl = u[m.lf] || 0;
+          if (games === 0 && best === 0) return;
+          const lvlDisplay = lvl > 0 ? lvl : (best > 0 ? '1+' : '—');
+          offlineHtml += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:6px;">' +
+            '<div style="font-size:.85rem;font-weight:700;margin-bottom:6px;">' + m.label + '</div>' +
+            '<div class="profile-stat-grid">' +
+            '<div class="profile-stat-card"><div class="psv">' + best.toLocaleString() + '</div><div class="psl">' + (lang === 'en' ? 'Best' : 'En İyi') + '</div></div>' +
+            '<div class="profile-stat-card"><div class="psv">' + lvlDisplay + '</div><div class="psl">' + (lang === 'en' ? 'Level' : 'Seviye') + '</div></div>' +
+            '<div class="profile-stat-card"><div class="psv">' + games + '</div><div class="psl">' + (lang === 'en' ? 'Games' : 'Oyun') + '</div></div>' +
+            '</div></div>';
+        });
+        document.getElementById('profile-offline-grid').innerHTML = offlineHtml || '<div style="color:var(--muted);font-size:.82rem;padding:8px;">' + (lang === 'en' ? 'No offline games yet.' : 'Henüz offline oyun yok.') + '</div>';
+        // Online rank istatistikleri
+        const rankModes = [
+          { key: 'world',  label: lang === 'en' ? '🌍 World' : '🌍 Dünya' },
+          { key: 'europe', label: lang === 'en' ? '🇪🇺 Europe' : '🇪🇺 Avrupa' },
+          { key: 'turkey', label: lang === 'en' ? '🇹🇷 Turkey' : '🇹🇷 Türkiye' },
+          { key: 'flag',   label: lang === 'en' ? '🚩 Flags' : '🚩 Bayraklar' },
+        ];
+        let onlineHtml = '';
+        rankModes.forEach(m => {
+          const elo = getElo(u, m.key);
+          const rankGames = u[getRankGamesField(m.key)] || 0;
+          const wins = u['wins_' + m.key] || 0;
+          const losses = u['losses_' + m.key] || 0;
+          const total = wins + losses;
+          // Hiç ranked oyun yoksa gösterme
+          if (rankGames === 0) return;
+          const winPct = total > 0 ? Math.round(wins / total * 100) : null;
+          const rankLabel = getRankLabel(elo, lang);
+          const rankEmoji = getRankEmoji(elo);
+          const rankCls = getRankClass(elo);
+          const gamesLabel = lang === 'en' ? 'games' : 'oyun';
+          const winLabel = lang === 'en' ? 'win rate' : 'kazanma';
+          const placementLeft = Math.max(0, RANK_PLACEMENT_GAMES - rankGames);
+          const placementText = placementLeft > 0
+            ? '<span style="color:var(--muted);">' + placementLeft + ' ' + (lang === 'en' ? 'placement left' : 'yerleşme kaldı') + '</span>'
+            : '';
+          // Kazanma yüzdesi satırı
+          let statsLine = rankGames + ' ' + gamesLabel;
+          if (winPct !== null) {
+            statsLine += ' &nbsp;·&nbsp; ' + wins + 'W ' + losses + 'L &nbsp;·&nbsp; <span style="color:' + (winPct >= 50 ? 'var(--green)' : 'var(--red)') + ';">' + winPct + '% ' + winLabel + '</span>';
+          } else if (placementLeft > 0) {
+            statsLine += ' &nbsp;·&nbsp; ' + placementText;
+          }
+          // wins/losses yoksa sadece oyun sayısını göster, "güncelleniyor" yazma
+          onlineHtml += '<div class="profile-rank-row">' +
+            '<div class="profile-rank-mode">' + m.label + '</div>' +
+            '<div class="profile-rank-right">' +
+            '<div style="text-align:right;">' +
+            '<span class="rank-badge ' + rankCls + '">' + rankEmoji + ' ' + rankLabel + '</span>' +
+            '<div style="font-size:.72rem;color:var(--muted);margin-top:3px;">' + statsLine + '</div>' +
+            '</div></div></div>';
+        });
+        document.getElementById('profile-online-grid').innerHTML = onlineHtml || '<div style="color:var(--muted);font-size:.82rem;padding:8px;">' + (lang === 'en' ? 'No ranked games yet.' : 'Henüz ranked oyun yok.') + '</div>';
+      } catch(e) {
+        document.getElementById('profile-offline-grid').innerHTML = '<div style="color:var(--red);font-size:.82rem;padding:8px;">' + (lang === 'en' ? 'Error loading profile.' : 'Profil yüklenemedi.') + '</div>';
+      }
+    }
+
+    async function toggleProfilePrivacy(checked) {
+      if (!currentUser || !db) return;
+      const key = currentUser.username.toLowerCase();
+      try {
+        await db.collection('users').doc(key).update({ statsPrivate: checked });
+        currentUser.statsPrivate = checked;
+      } catch(e) { console.error('Privacy toggle error:', e); }
+    }
 
     function showEndMainMenu() {
       goToWelcome();
@@ -7956,8 +8380,19 @@ window._geomeisterUser = currentUser;
           }
           elo = Math.max(0, elo + delta);
           games += 1;
-
-          tx.update(userRef, { [eloField]: elo, [gamesField]: games });
+          const winsField = 'wins_' + mode;
+          const lossesField = 'losses_' + mode;
+          const currentWins = userData[winsField] || 0;
+          const currentLosses = userData[lossesField] || 0;
+          tx.update(userRef, {
+            [eloField]: elo,
+            [gamesField]: games,
+            [winsField]: won ? currentWins + 1 : currentWins,
+            [lossesField]: won ? currentLosses : currentLosses + 1,
+          });
+          // Local cache
+          currentUser[winsField] = won ? currentWins + 1 : currentWins;
+          currentUser[lossesField] = won ? currentLosses : currentLosses + 1;
 
           const newElo = games >= RANK_PLACEMENT_GAMES ? elo : null;
           const newRank = getRankFromElo(newElo);
@@ -9579,7 +10014,7 @@ function _showMpResultsInternal() {
       // Rank güncelle (rastgele eşleşme + normal lobi, forfeit yoksa)
       const rankChangeEl = document.getElementById('mp-rank-change');
       if (rankChangeEl) rankChangeEl.innerHTML = '';
-      if (mpLobby && !mpLobby.isBot && !mpLobby.forfeitedBy) {
+      if (mpLobby && !mpLobby.forfeitedBy) {
         const scores = mpLobby.scores || {};
         const playerArr2 = Object.keys(scores).sort((a, b) => (scores[b] || 0) - (scores[a] || 0));
         const myRank = playerArr2.indexOf(currentUser.username);
@@ -9962,6 +10397,8 @@ async function mpForfeitAndExit(silent) {
     document.addEventListener('DOMContentLoaded', () => {
       const joinInput = document.getElementById('mp-join-code');
       if (joinInput) joinInput.addEventListener('keydown', e => { if (e.key === 'Enter') mpJoinLobby(); });
+      const searchInput = document.getElementById('search-input');
+      if (searchInput) searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doPlayerSearch(); });
     });
 
     // iOS güvenilir buton fix — onclick yerine touchend + click ikisi birden
@@ -9993,6 +10430,7 @@ async function mpForfeitAndExit(silent) {
         iosFix('btn-play-turkey', () => welcomeStart('turkey'));
         iosFix('btn-multiplayer', () => openMultiplayerMenu());
         iosFix('btn-welcome-lb', () => showLeaderboard('welcome'));
+        iosFix('btn-search-player', () => openSearchModal());
         iosFix('btn-options-welcome', () => openOptions('welcome'));
         iosFix('btn-welcome-logout', () => authLogout());
         // Ana menü

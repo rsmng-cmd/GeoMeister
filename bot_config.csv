@@ -1,0 +1,9 @@
+MOD,RANK,DEGER_ADI,DEGER,ORTALAMA_PUAN,MIN_PUAN,MAX_PUAN,ACIKLAMA
+harita,bronze,avgScore,280,280,196,364,Soru basi ortalama puan (+-30% varyans)
+harita,silver,avgScore,410,410,287,533,Soru basi ortalama puan (+-30% varyans)
+harita,gold,avgScore,580,580,406,754,Soru basi ortalama puan (+-30% varyans)
+harita,plat,avgScore,696,696,487,905,Soru basi ortalama puan (+-30% varyans)
+bayrak,bronze,rate,0.30,300,0,1000,Dogru cevap orani (0.00-1.00) | Ortalama puan = rate x 1000
+bayrak,silver,rate,0.45,450,0,1000,Dogru cevap orani (0.00-1.00) | Ortalama puan = rate x 1000
+bayrak,gold,rate,0.60,600,0,1000,Dogru cevap orani (0.00-1.00) | Ortalama puan = rate x 1000
+bayrak,plat,rate,0.72,720,0,1000,Dogru cevap orani (0.00-1.00) | Ortalama puan = rate x 1000
